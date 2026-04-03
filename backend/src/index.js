@@ -22,14 +22,13 @@ app.use('/api/templates', require('./routes/templates'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+const PORT = process.env.PORT || 4000;
+
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    const PORT = process.env.PORT || 4000;
-    app.listen(PORT, () => {
-      console.log(`Backend running on http://localhost:${PORT}`);
-    });
+    app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
