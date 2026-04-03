@@ -14,6 +14,8 @@ const storage = new CloudinaryStorage({
     folder: 'signaturely/originals',
     resource_type: 'raw',
     public_id: () => Date.now() + '-' + Math.round(Math.random() * 1e9),
+    access_mode: 'public',
+    type: 'upload',
   },
 });
 

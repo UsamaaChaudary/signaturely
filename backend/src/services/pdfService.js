@@ -67,6 +67,8 @@ async function mergeSignatures(request) {
         resource_type: 'raw',
         format: 'pdf',
         public_id: `completed_${request._id}`,
+        access_mode: 'public',
+        type: 'upload',
       },
       (error, result) => {
         if (error) return reject(error);
