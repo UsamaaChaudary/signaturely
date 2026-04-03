@@ -111,7 +111,5 @@ export const getFileUrl = (path: string) => {
 
 export const getCompletedFileUrl = (path: string) => {
   if (!path) return "";
-  const parts = path.split("/");
-  const filename = parts[parts.length - 1];
-  return `${API_URL}/uploads/completed/${filename}`;
+  return path; // Cloudinary HTTPS URL stored in DB
 };
