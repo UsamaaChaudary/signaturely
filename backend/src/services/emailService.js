@@ -6,7 +6,7 @@ async function getTransporter() {
   if (transporter) return transporter;
 
   if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_placeholder') {
-    // Use Resend via SMTP
+    console.log('[email] Using Resend SMTP — key prefix:', process.env.RESEND_API_KEY.slice(0, 8));
     transporter = nodemailer.createTransport({
       host: 'smtp.resend.com',
       port: 465,
@@ -17,7 +17,7 @@ async function getTransporter() {
       },
     });
   } else {
-    // Use Ethereal for testing
+    console.log('[email] RESEND_API_KEY not set — falling back to Ethereal');
     const testAccount = await nodemailer.createTestAccount();
     transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
@@ -28,7 +28,7 @@ async function getTransporter() {
         pass: testAccount.pass,
       },
     });
-    console.log('Using Ethereal email - preview at: https://ethereal.email');
+    console.log('[email] Ethereal preview at: https://ethereal.email');
     console.log('   User:', testAccount.user);
     console.log('   Pass:', testAccount.pass);
   }
@@ -38,18 +38,23 @@ async function getTransporter() {
 
 async function sendEmail({ to, subject, html }) {
   const t = await getTransporter();
-  const info = await t.sendMail({
-    from: '"Signo" <uzair@bookleeai.com>',
-    to,
-    subject,
-    html,
-  });
-
-  if (nodemailer.getTestMessageUrl(info)) {
-    console.log('Email Preview URL:', nodemailer.getTestMessageUrl(info));
+  console.log(`[email] Sending "${subject}" to ${to}`);
+  try {
+    const info = await t.sendMail({
+      from: '"Signo" <uzair@bookleeai.com>',
+      to,
+      subject,
+      html,
+    });
+    if (nodemailer.getTestMessageUrl(info)) {
+      console.log('[email] Preview URL:', nodemailer.getTestMessageUrl(info));
+    }
+    return info;
+  } catch (err) {
+    console.error('[email] sendMail failed:', err.message);
+    console.error('[email] Full error:', err);
+    throw err;
   }
-
-  return info;
 }
 
 async function sendSigningInvitation({ to, signerName, ownerName, title, message, signingUrl }) {
@@ -131,16 +136,21 @@ async function sendCompletionEmail({ request, completedFilePath }) {
     `;
 
     const t = await getTransporter();
-    const info = await t.sendMail({
-      from: '"Signo" <uzair@bookleeai.com>',
-      to: recipient.email,
-      subject: `"${request.title}" has been fully signed`,
-      html,
-      attachments,
-    });
-
-    if (nodemailer.getTestMessageUrl(info)) {
-      console.log(`Completion email preview (${recipient.email}):`, nodemailer.getTestMessageUrl(info));
+    console.log(`[email] Sending completion email to ${recipient.email}`);
+    try {
+      const info = await t.sendMail({
+        from: '"Signo" <uzair@bookleeai.com>',
+        to: recipient.email,
+        subject: `"${request.title}" has been fully signed`,
+        html,
+        attachments,
+      });
+      if (nodemailer.getTestMessageUrl(info)) {
+        console.log(`[email] Completion preview (${recipient.email}):`, nodemailer.getTestMessageUrl(info));
+      }
+    } catch (err) {
+      console.error(`[email] sendMail failed for ${recipient.email}:`, err.message);
+      console.error('[email] Full error:', err);
     }
   }
 }
