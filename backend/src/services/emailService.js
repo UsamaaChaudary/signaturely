@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 // ─── Resend (production) ────────────────────────────────────────────────────
 
-async function sendViaResend({ to, subject, html }) {
+async function sendViaResend({ to, subject, html, attachments = [] }) {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -14,6 +14,12 @@ async function sendViaResend({ to, subject, html }) {
       to,
       subject,
       html,
+      ...(attachments.length > 0 && {
+        attachments: attachments.map(({ filename, content }) => ({
+          filename,
+          content: content.toString('base64'),
+        })),
+      }),
     }),
   });
   const data = await response.json();
@@ -152,7 +158,7 @@ async function sendCompletionEmail({ request, completedFilePath }) {
     try {
       if (useResend()) {
         console.log('[email] Using Resend API — key prefix:', process.env.RESEND_API_KEY.slice(0, 8));
-        await sendViaResend({ to: recipient.email, subject: `"${request.title}" has been fully signed`, html });
+        await sendViaResend({ to: recipient.email, subject: `"${request.title}" has been fully signed`, html, attachments });
       } else {
         const t = await getEtherealTransporter();
         const info = await t.sendMail({
