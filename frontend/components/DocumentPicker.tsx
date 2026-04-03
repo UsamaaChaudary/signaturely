@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 interface Doc {
   _id: string;
   originalName: string;
+  filePath?: string;
   fileSize: number;
   pageCount: number;
   isTemplate: boolean;
@@ -23,6 +24,7 @@ export default function DocumentPicker({ selectedId, onSelect, onUpload }: Props
   const [docs, setDocs] = useState<Doc[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.getDocuments().then((d: Doc[]) => { setDocs(d); setLoading(false); });
@@ -48,12 +50,12 @@ export default function DocumentPicker({ selectedId, onSelect, onUpload }: Props
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-gray-500">Select an existing document or upload a new PDF</p>
-        <label className="cursor-pointer">
-          <input type="file" accept=".pdf" className="hidden" onChange={handleFileChange} disabled={uploading} />
-          <Button variant="outline" size="sm" asChild>
-            <span><Upload className="h-4 w-4 mr-2" />{uploading ? "Uploading..." : "Upload PDF"}</span>
+        <div>
+          <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleFileChange} disabled={uploading} />
+          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-4 w-4 mr-2" />{uploading ? "Uploading..." : "Upload PDF"}
           </Button>
-        </label>
+        </div>
       </div>
 
       {docs.length === 0 ? (

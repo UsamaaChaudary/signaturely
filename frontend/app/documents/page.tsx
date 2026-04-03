@@ -13,6 +13,7 @@ import { FileText, Upload, Send, BookMarked, Trash2, Search, MoreVertical, Penci
 interface Doc {
   _id: string;
   originalName: string;
+  filePath?: string;
   fileSize: number;
   pageCount: number;
   isTemplate: boolean;

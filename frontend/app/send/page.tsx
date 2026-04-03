@@ -17,7 +17,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 type Step = "document" | "fields" | "signers";
 
-interface Doc { _id: string; originalName: string; filePath: string; pageCount: number; }
+interface Doc { _id: string; originalName: string; filePath?: string; pageCount: number; }
 interface Template { _id: string; name: string; documentId: { _id: string; filePath: string; originalName: string; pageCount: number }; fields: Field[]; signerCount: number; }
 
 function SendPageInner() {
@@ -55,6 +55,7 @@ function SendPageInner() {
   const renderPdf = useCallback(async (doc: Doc) => {
     setLoadingPdf(true);
     try {
+      if (!doc.filePath) { toast.error("PDF render failed"); return; }
       const pdfjsLib = await import("pdfjs-dist");
       pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
       const url = doc.filePath; // Cloudinary HTTPS URL stored in DB
