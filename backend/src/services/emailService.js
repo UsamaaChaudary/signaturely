@@ -10,7 +10,7 @@ async function sendViaResend({ to, subject, html, attachments = [] }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Signo <noreply@bookleeai.com>',
+      from: 'Signo <uzair@bookleeai.com>',
       to,
       subject,
       html,
