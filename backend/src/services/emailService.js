@@ -39,7 +39,7 @@ async function getTransporter() {
 async function sendEmail({ to, subject, html }) {
   const t = await getTransporter();
   const info = await t.sendMail({
-    from: '"Signo" <noreply@bookleeai.com>',
+    from: '"Signo" <uzair@bookleeai.com>',
     to,
     subject,
     html,
@@ -132,7 +132,7 @@ async function sendCompletionEmail({ request, completedFilePath }) {
 
     const t = await getTransporter();
     const info = await t.sendMail({
-      from: '"Signo" <noreply@bookleeai.com>',
+      from: '"Signo" <uzair@bookleeai.com>',
       to: recipient.email,
       subject: `"${request.title}" has been fully signed`,
       html,
