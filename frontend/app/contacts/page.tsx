@@ -24,7 +24,7 @@ interface Contact {
   createdAt: string;
 }
 
-interface CsvRow { name: string; email: string; company?: string; }
+interface CsvRow { [key: string]: unknown; name: string; email: string; company?: string; }
 
 function parseCsv(text: string): CsvRow[] {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
