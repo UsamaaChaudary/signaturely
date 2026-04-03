@@ -39,7 +39,7 @@ async function getTransporter() {
 async function sendEmail({ to, subject, html }) {
   const t = await getTransporter();
   const info = await t.sendMail({
-    from: '"ESign POC" <noreply@esign.local>',
+    from: '"Signo" <noreply@bookleeai.com>',
     to,
     subject,
     html,
@@ -56,7 +56,7 @@ async function sendSigningInvitation({ to, signerName, ownerName, title, message
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: #4F46E5; padding: 20px; text-align: center;">
-        <h1 style="color: white; margin: 0;">ESign</h1>
+        <h1 style="color: white; margin: 0;">Signo</h1>
       </div>
       <div style="padding: 30px; background: #f9f9f9;">
         <h2>Hi ${signerName},</h2>
@@ -79,7 +79,7 @@ async function sendReminder({ to, signerName, ownerName, title, signingUrl }) {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: #4F46E5; padding: 20px; text-align: center;">
-        <h1 style="color: white; margin: 0;">ESign</h1>
+        <h1 style="color: white; margin: 0;">Signo</h1>
       </div>
       <div style="padding: 30px; background: #f9f9f9;">
         <h2>Reminder: Hi ${signerName},</h2>
@@ -97,11 +97,19 @@ async function sendReminder({ to, signerName, ownerName, title, signingUrl }) {
 }
 
 async function sendCompletionEmail({ request, completedFilePath }) {
-  const fs = require('fs');
-  const attachments = completedFilePath && fs.existsSync(completedFilePath) ? [{
-    filename: `signed_${request.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-    path: completedFilePath,
-  }] : [];
+  const axios = require('axios');
+  let attachments = [];
+  if (completedFilePath) {
+    try {
+      const fileResponse = await axios.get(completedFilePath, { responseType: 'arraybuffer' });
+      attachments = [{
+        filename: `signed_${request.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+        content: Buffer.from(fileResponse.data),
+      }];
+    } catch (err) {
+      console.error('Failed to fetch completed PDF for email attachment:', err.message);
+    }
+  }
 
   const allEmails = [
     ...request.signers.map(s => ({ email: s.email, name: s.name })),
@@ -111,7 +119,7 @@ async function sendCompletionEmail({ request, completedFilePath }) {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #4F46E5; padding: 20px; text-align: center;">
-          <h1 style="color: white; margin: 0;">ESign</h1>
+          <h1 style="color: white; margin: 0;">Signo</h1>
         </div>
         <div style="padding: 30px; background: #f9f9f9;">
           <div style="text-align: center; font-size: 48px; margin-bottom: 20px;">&#10003;</div>
@@ -123,13 +131,17 @@ async function sendCompletionEmail({ request, completedFilePath }) {
     `;
 
     const t = await getTransporter();
-    await t.sendMail({
-      from: '"ESign POC" <noreply@esign.local>',
+    const info = await t.sendMail({
+      from: '"Signo" <noreply@bookleeai.com>',
       to: recipient.email,
       subject: `"${request.title}" has been fully signed`,
       html,
       attachments,
     });
+
+    if (nodemailer.getTestMessageUrl(info)) {
+      console.log(`Completion email preview (${recipient.email}):`, nodemailer.getTestMessageUrl(info));
+    }
   }
 }
 

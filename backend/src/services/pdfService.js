@@ -1,11 +1,12 @@
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
-const fs = require('fs');
-const path = require('path');
+const axios = require('axios');
+const cloudinary = require('../utils/cloudinary');
 
 async function mergeSignatures(request) {
   const doc = request.documentId;
-  const originalPdfBytes = fs.readFileSync(doc.filePath);
-  const pdfDoc = await PDFDocument.load(originalPdfBytes);
+  // Fetch original PDF from Cloudinary (filePath is now an HTTPS URL)
+  const fetchResponse = await axios.get(doc.filePath, { responseType: 'arraybuffer' });
+  const pdfDoc = await PDFDocument.load(Buffer.from(fetchResponse.data));
   const pages = pdfDoc.getPages();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
@@ -56,14 +57,26 @@ async function mergeSignatures(request) {
     }
   }
 
-  const completedDir = path.join(__dirname, '../../uploads/completed');
-  fs.mkdirSync(completedDir, { recursive: true });
-
-  const outputPath = path.join(completedDir, `completed_${request._id}.pdf`);
   const pdfBytes = await pdfDoc.save();
-  fs.writeFileSync(outputPath, pdfBytes);
 
-  return outputPath;
+  // Upload completed PDF to Cloudinary and return the secure URL
+  const secureUrl = await new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'signaturely/completed',
+        resource_type: 'raw',
+        format: 'pdf',
+        public_id: `completed_${request._id}`,
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    uploadStream.end(Buffer.from(pdfBytes));
+  });
+
+  return secureUrl;
 }
 
 module.exports = { mergeSignatures };

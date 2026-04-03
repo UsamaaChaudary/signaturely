@@ -1,9 +1,9 @@
 const express = require('express');
-const path = require('path');
 const SigningRequest = require('../models/SigningRequest');
 const Document = require('../models/Document');
 const pdfService = require('../services/pdfService');
 const emailService = require('../services/emailService');
+const { updateContactStats } = require('../utils/contactStats');
 const router = express.Router();
 
 router.get('/:token', async (req, res) => {
@@ -33,10 +33,6 @@ router.get('/:token', async (req, res) => {
     // Get only this signer's fields
     const signerFields = request.fields.filter(f => f.signerId === signer._id.toString());
 
-    // Build file URL
-    const docPath = request.documentId.filePath;
-    const fileName = path.basename(docPath);
-
     res.json({
       requestId: request._id,
       title: request.title,
@@ -50,7 +46,7 @@ router.get('/:token', async (req, res) => {
       document: {
         name: request.documentId.originalName,
         pageCount: request.documentId.pageCount,
-        fileUrl: `/uploads/originals/${fileName}`,
+        fileUrl: request.documentId.filePath, // Cloudinary HTTPS URL
       },
       fields: signerFields,
     });
@@ -99,6 +95,9 @@ router.post('/:token/submit', async (req, res) => {
         const completedPath = await pdfService.mergeSignatures(request);
         request.completedFilePath = completedPath;
         await request.save();
+
+        // Update contact completion stats
+        await updateContactStats(request.contactIds, { totalCompleted: 1 });
 
         // Send completion emails
         await emailService.sendCompletionEmail({

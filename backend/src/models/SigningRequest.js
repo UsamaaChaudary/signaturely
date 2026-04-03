@@ -24,14 +24,19 @@ const signerSchema = new mongoose.Schema({
 });
 
 const signingRequestSchema = new mongoose.Schema({
-  documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true },
-  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  title: { type: String, required: true },
-  message: { type: String, default: '' },
-  signers: [signerSchema],
-  fields: [fieldSchema],
-  status: { type: String, enum: ['pending', 'in_progress', 'completed', 'cancelled'], default: 'pending' },
+  documentId:        { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true },
+  ownerId:           { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  templateId:        { type: mongoose.Schema.Types.ObjectId, ref: 'Template', default: null },
+  contactIds:        [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contact' }],
+  title:             { type: String, required: true },
+  message:           { type: String, default: '' },
+  signers:           [signerSchema],
+  fields:            [fieldSchema],
+  status:            { type: String, enum: ['pending', 'in_progress', 'completed', 'cancelled'], default: 'pending' },
   completedFilePath: { type: String },
 }, { timestamps: true });
+
+signingRequestSchema.index({ ownerId: 1, contactIds: 1 });
+signingRequestSchema.index({ ownerId: 1, status: 1 });
 
 module.exports = mongoose.model('SigningRequest', signingRequestSchema);

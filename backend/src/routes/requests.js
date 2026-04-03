@@ -3,12 +3,14 @@ const { v4: uuidv4 } = require('uuid');
 const auth = require('../middleware/auth');
 const SigningRequest = require('../models/SigningRequest');
 const Document = require('../models/Document');
+const Template = require('../models/Template');
 const emailService = require('../services/emailService');
+const { updateContactStats } = require('../utils/contactStats');
 const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { documentId, title, message, signers, fields, signerMapping } = req.body;
+    const { documentId, title, message, signers, fields, signerMapping, contactIds, templateId } = req.body;
 
     // Verify document ownership
     const doc = await Document.findOne({ _id: documentId, ownerId: req.user._id });
@@ -26,6 +28,8 @@ router.post('/', auth, async (req, res) => {
     const request = await SigningRequest.create({
       documentId,
       ownerId: req.user._id,
+      templateId: templateId || null,
+      contactIds: contactIds || [],
       title,
       message: message || '',
       signers: signersWithTokens,
@@ -59,6 +63,14 @@ router.post('/', auth, async (req, res) => {
 
     request.fields = mappedFields;
     await request.save();
+
+    // Increment contact totalSent stats
+    await updateContactStats(contactIds, { totalSent: 1 });
+
+    // Increment template usage count
+    if (templateId) {
+      await Template.updateOne({ _id: templateId, ownerId: req.user._id }, { $inc: { usageCount: 1 } });
+    }
 
     // Send emails to all signers
     const frontendUrl = process.env.FRONTEND_URL;
