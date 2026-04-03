@@ -1,45 +1,60 @@
 const nodemailer = require('nodemailer');
 
-let transporter;
+// ─── Resend (production) ────────────────────────────────────────────────────
 
-async function getTransporter() {
-  if (transporter) return transporter;
+async function sendViaResend({ to, subject, html }) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'onboarding@resend.dev',
+      to,
+      subject,
+      html,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(JSON.stringify(data));
+  return data;
+}
 
-  if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_placeholder') {
-    console.log('[email] Using Resend SMTP — key prefix:', process.env.RESEND_API_KEY.slice(0, 8));
-    transporter = nodemailer.createTransport({
-      host: 'smtp.resend.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'resend',
-        pass: process.env.RESEND_API_KEY,
-      },
-    });
-  } else {
-    console.log('[email] RESEND_API_KEY not set — falling back to Ethereal');
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-    console.log('[email] Ethereal preview at: https://ethereal.email');
-    console.log('   User:', testAccount.user);
-    console.log('   Pass:', testAccount.pass);
-  }
+// ─── Ethereal (local dev fallback) ─────────────────────────────────────────
 
-  return transporter;
+let etherealTransporter;
+
+async function getEtherealTransporter() {
+  if (etherealTransporter) return etherealTransporter;
+  console.log('[email] RESEND_API_KEY not set — falling back to Ethereal');
+  const testAccount = await nodemailer.createTestAccount();
+  etherealTransporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: { user: testAccount.user, pass: testAccount.pass },
+  });
+  console.log('[email] Ethereal preview at: https://ethereal.email');
+  console.log('   User:', testAccount.user);
+  console.log('   Pass:', testAccount.pass);
+  return etherealTransporter;
+}
+
+// ─── Core send ──────────────────────────────────────────────────────────────
+
+function useResend() {
+  return process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_placeholder';
 }
 
 async function sendEmail({ to, subject, html }) {
-  const t = await getTransporter();
   console.log(`[email] Sending "${subject}" to ${to}`);
   try {
+    if (useResend()) {
+      console.log('[email] Using Resend API — key prefix:', process.env.RESEND_API_KEY.slice(0, 8));
+      return await sendViaResend({ to, subject, html });
+    }
+    const t = await getEtherealTransporter();
     const info = await t.sendMail({
       from: '"Signo" <uzair@bookleeai.com>',
       to,
@@ -51,11 +66,13 @@ async function sendEmail({ to, subject, html }) {
     }
     return info;
   } catch (err) {
-    console.error('[email] sendMail failed:', err.message);
+    console.error('[email] sendEmail failed:', err.message);
     console.error('[email] Full error:', err);
     throw err;
   }
 }
+
+// ─── Public functions ───────────────────────────────────────────────────────
 
 async function sendSigningInvitation({ to, signerName, ownerName, title, message, signingUrl }) {
   const html = `
@@ -76,7 +93,6 @@ async function sendSigningInvitation({ to, signerName, ownerName, title, message
       </div>
     </div>
   `;
-
   return sendEmail({ to, subject: `${ownerName} requests your signature on "${title}"`, html });
 }
 
@@ -97,7 +113,6 @@ async function sendReminder({ to, signerName, ownerName, title, signingUrl }) {
       </div>
     </div>
   `;
-
   return sendEmail({ to, subject: `Reminder: Please sign "${title}"`, html });
 }
 
@@ -112,15 +127,13 @@ async function sendCompletionEmail({ request, completedFilePath }) {
         content: Buffer.from(fileResponse.data),
       }];
     } catch (err) {
-      console.error('Failed to fetch completed PDF for email attachment:', err.message);
+      console.error('[email] Failed to fetch completed PDF for attachment:', err.message);
     }
   }
 
-  const allEmails = [
-    ...request.signers.map(s => ({ email: s.email, name: s.name })),
-  ];
+  const recipients = request.signers.map(s => ({ email: s.email, name: s.name }));
 
-  for (const recipient of allEmails) {
+  for (const recipient of recipients) {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #4F46E5; padding: 20px; text-align: center;">
@@ -135,21 +148,26 @@ async function sendCompletionEmail({ request, completedFilePath }) {
       </div>
     `;
 
-    const t = await getTransporter();
     console.log(`[email] Sending completion email to ${recipient.email}`);
     try {
-      const info = await t.sendMail({
-        from: '"Signo" <uzair@bookleeai.com>',
-        to: recipient.email,
-        subject: `"${request.title}" has been fully signed`,
-        html,
-        attachments,
-      });
-      if (nodemailer.getTestMessageUrl(info)) {
-        console.log(`[email] Completion preview (${recipient.email}):`, nodemailer.getTestMessageUrl(info));
+      if (useResend()) {
+        console.log('[email] Using Resend API — key prefix:', process.env.RESEND_API_KEY.slice(0, 8));
+        await sendViaResend({ to: recipient.email, subject: `"${request.title}" has been fully signed`, html });
+      } else {
+        const t = await getEtherealTransporter();
+        const info = await t.sendMail({
+          from: '"Signo" <uzair@bookleeai.com>',
+          to: recipient.email,
+          subject: `"${request.title}" has been fully signed`,
+          html,
+          attachments,
+        });
+        if (nodemailer.getTestMessageUrl(info)) {
+          console.log(`[email] Completion preview (${recipient.email}):`, nodemailer.getTestMessageUrl(info));
+        }
       }
     } catch (err) {
-      console.error(`[email] sendMail failed for ${recipient.email}:`, err.message);
+      console.error(`[email] sendCompletionEmail failed for ${recipient.email}:`, err.message);
       console.error('[email] Full error:', err);
     }
   }
