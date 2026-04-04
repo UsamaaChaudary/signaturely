@@ -46,14 +46,11 @@ async function mergeSignatures(request) {
         maxWidth: w - 4,
       });
     } else if (field.type === 'checkbox' && field.value === 'true') {
-      const checkFontSize = Math.min(h * 0.7, 12);
-      page.drawText('✓', {
-        x: x + 2,
-        y: y + (h / 2) - (checkFontSize / 2),
-        size: checkFontSize,
-        font,
-        color: rgb(0, 0.5, 0),
-      });
+      // Draw two diagonal lines forming an X — avoids non-Latin glyph issues
+      // with StandardFonts (Helvetica doesn't include ✓ / U+2713).
+      const padding = 2;
+      page.drawLine({ start: { x: x + padding, y: y + padding }, end: { x: x + w - padding, y: y + h - padding }, thickness: 1.5, color: rgb(0, 0.5, 0) });
+      page.drawLine({ start: { x: x + w - padding, y: y + padding }, end: { x: x + padding, y: y + h - padding }, thickness: 1.5, color: rgb(0, 0.5, 0) });
     }
   }
 

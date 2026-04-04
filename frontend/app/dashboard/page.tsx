@@ -252,22 +252,28 @@ export default function Dashboard() {
                           <span className="hidden sm:inline">{cfg.label}</span>
                         </span>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 sm:h-8 sm:w-8"
-                          title="Preview document"
-                          onClick={() => setPreviewReq(req)}
-                        >
-                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
+                        {/* Preview */}
+                        <div className="relative group">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer"
+                            onClick={() => setPreviewReq(req)}
+                          >
+                            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex items-center whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs text-white shadow-md z-50">
+                            Preview document
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </div>
 
                         {/* Copy link */}
                         <div className="relative group">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer"
                             onClick={() => copySignerLink(req, signer)}
                           >
                             <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />

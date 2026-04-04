@@ -359,8 +359,8 @@ export default function FieldPlacer({
             </div>
           )}
 
-          {/* ── Signer selector ── */}
-          <div className="p-4 border-b border-gray-100">
+          {/* ── Signer selector — only shown for multi-signer requests ── */}
+          {signers.length > 1 && <div className="p-4 border-b border-gray-100">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Assign To</p>
             <div className="space-y-1">
               {signers.map((s, i) => (
@@ -387,7 +387,7 @@ export default function FieldPlacer({
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* ── Field type tools ── */}
           <div className="p-4 border-b border-gray-100">
