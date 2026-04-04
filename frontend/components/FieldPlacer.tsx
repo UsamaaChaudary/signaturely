@@ -9,6 +9,9 @@ import {
   Layers,
   Copy,
   ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -142,6 +145,15 @@ export default function FieldPlacer({
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [tmplName,         setTmplName]         = useState("");
   const [savingTmpl,       setSavingTmpl]       = useState(false);
+
+  // ── PDF zoom (affects only the PDF column, not the sidebar) ──────────
+  const [zoom, setZoom] = useState(1.0);
+  const ZOOM_STEP = 0.1;
+  const ZOOM_MIN  = 0.5;
+  const ZOOM_MAX  = 2.5;
+  const zoomIn    = () => setZoom((z) => Math.min(ZOOM_MAX, parseFloat((z + ZOOM_STEP).toFixed(2))));
+  const zoomOut   = () => setZoom((z) => Math.max(ZOOM_MIN, parseFloat((z - ZOOM_STEP).toFixed(2))));
+  const zoomReset = () => setZoom(1.0);
 
   // ── Global mouse handlers ────────────────────────────────────────────
   useEffect(() => {
@@ -431,11 +443,16 @@ export default function FieldPlacer({
       </div>
 
       {/* ── PDF Viewer ── */}
-      <div className="flex-1 overflow-auto h-full">
+      <div className="flex-1 overflow-auto h-full relative">
         {loadingPdf ? (
           <div className="text-center py-16 text-gray-400">Rendering PDF…</div>
         ) : (
-          <div ref={pdfContainerRef} className="space-y-4">
+          <>
+          <div
+            ref={pdfContainerRef}
+            className="space-y-4 mx-auto"
+            style={{ width: `${zoom * 100}%` }}
+          >
             {pdfPages.map((canvas, pageIndex) => (
               <div
                 key={pageIndex}
@@ -556,6 +573,48 @@ export default function FieldPlacer({
               </div>
             ))}
           </div>
+
+          {/* ── Zoom controls — sticky floating pill at bottom of PDF column ── */}
+          <div className="sticky bottom-4 z-20 flex justify-center mt-4 pointer-events-none">
+            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg px-2 py-1.5 pointer-events-auto select-none"
+                 style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
+              <button
+                onClick={zoomOut}
+                disabled={zoom <= ZOOM_MIN}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Zoom out"
+              >
+                <ZoomOut className="h-[15px] w-[15px]" />
+              </button>
+
+              <span className="min-w-[46px] text-center text-[12px] font-semibold text-gray-700 tabular-nums">
+                {Math.round(zoom * 100)}%
+              </span>
+
+              <button
+                onClick={zoomIn}
+                disabled={zoom >= ZOOM_MAX}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Zoom in"
+              >
+                <ZoomIn className="h-[15px] w-[15px]" />
+              </button>
+
+              {zoom !== 1.0 && (
+                <>
+                  <div className="w-px h-4 bg-gray-200 mx-0.5" />
+                  <button
+                    onClick={zoomReset}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer"
+                    title="Reset zoom"
+                  >
+                    <Maximize2 className="h-[13px] w-[13px]" />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          </>
         )}
       </div>
     </div>
