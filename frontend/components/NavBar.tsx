@@ -13,8 +13,8 @@ import {
 import { getUser, logout } from "@/lib/auth";
 
 const NAV_LINKS = [
-  { href: "/",          label: "Dashboard", icon: LayoutDashboard },
-  { href: "/documents", label: "Documents", icon: FileText        },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/documents",  label: "Documents", icon: FileText        },
   { href: "/contacts",  label: "Contacts",  icon: Users           },
   { href: "/templates", label: "Templates", icon: LayoutTemplate  },
 ];
@@ -44,7 +44,7 @@ export default function NavBar() {
 
         {/* ── Logo ─────────────────────────────────────────────── */}
         <Link
-          href="/"
+          href="/dashboard"
           className="flex items-center gap-2.5 flex-shrink-0 group cursor-pointer"
         >
           <div className="w-[34px] h-[34px] rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm transition-all group-hover:bg-indigo-700">
@@ -62,7 +62,7 @@ export default function NavBar() {
         <div className="flex items-center gap-1 flex-1">
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
             const active =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+              href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
             return (
               <Link
                 key={href}

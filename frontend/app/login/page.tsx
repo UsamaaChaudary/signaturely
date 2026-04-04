@@ -33,7 +33,7 @@ export default function LoginPage() {
       const res = await api.login(loginData);
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed";
       toast.error("Sign in failed", { description: message });
@@ -49,7 +49,7 @@ export default function LoginPage() {
       const res = await api.register(registerData);
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration failed";
       toast.error("Registration failed", { description: message });
