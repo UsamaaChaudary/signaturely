@@ -186,6 +186,7 @@ export default function Dashboard() {
                     <div
                       key={req._id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      onClick={() => router.push(`/requests/${req._id}`)}
                     >
                       <div className="flex items-center gap-4">
                         <Icon
@@ -208,7 +209,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <span
                           className={`text-xs px-2 py-1 rounded-full font-medium ${
                             statusColors[req.status]

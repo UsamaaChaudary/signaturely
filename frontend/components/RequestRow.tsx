@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, Download, Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,11 +25,15 @@ interface Props {
 }
 
 export default function RequestRow({ request, compact = false, onRemind, onCancel }: Props) {
+  const router = useRouter();
   const signed = request.signers?.filter((s) => s.status === "completed").length ?? 0;
   const total  = request.signers?.length ?? 0;
 
   return (
-    <div className={`flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg ${compact ? "text-sm" : ""}`}>
+    <div
+      className={`flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${compact ? "text-sm" : ""}`}
+      onClick={() => router.push(`/requests/${request._id}`)}
+    >
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900 truncate">{request.title}</p>
         {!compact && request.documentId && (
@@ -39,7 +44,7 @@ export default function RequestRow({ request, compact = false, onRemind, onCance
         </p>
       </div>
       <StatusBadge status={request.status} />
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <Link href={`/requests/${request._id}`}>
           <Button variant="ghost" size="icon-sm" title="View">
             <Eye className="h-4 w-4" />
