@@ -89,12 +89,11 @@ router.post('/:token/submit', async (req, res) => {
     const anyCompleted = request.signers.some(s => s.status === 'completed');
 
     if (allCompleted && anyCompleted) {
-      request.status = 'completed';
-
-      // Merge PDF
+      // Merge PDF first - only mark as completed if merge succeeds
       try {
         const completedPath = await pdfService.mergeSignatures(request);
         request.completedFilePath = completedPath;
+        request.status = 'completed';
         await request.save();
 
         // Update contact completion stats
@@ -110,6 +109,8 @@ router.post('/:token/submit', async (req, res) => {
         });
       } catch (pdfErr) {
         console.error('PDF merge error:', pdfErr);
+        // Keep in_progress status so it can be retried
+        request.status = 'in_progress';
         await request.save();
       }
     } else {
