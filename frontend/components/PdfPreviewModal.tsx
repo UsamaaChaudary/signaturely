@@ -135,8 +135,8 @@ export default function PdfPreviewModal({
           </div>
 
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-            {/* Zoom controls - hidden on very small screens */}
-            <div className="hidden xs:flex items-center gap-0.5">
+            {/* Zoom controls */}
+            <div className="flex items-center gap-0.5">
               <button onClick={zoomOut} disabled={zoom <= 25} title="Zoom out"
                 className="p-1 rounded sm:rounded-lg hover:bg-gray-100 text-gray-600 disabled:opacity-40 cursor-pointer transition-colors">
                 <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
