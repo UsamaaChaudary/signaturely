@@ -212,35 +212,36 @@ function SendPageInner() {
 
   const currentIdx     = steps.indexOf(step);
 
-  // ── Step indicator (shared between layouts) ──────────────────────────────
+  // Step indicator (shared between layouts)
   const stepIndicator = (
     <div className="flex items-center gap-2 text-sm">
       {steps.map((s, i) => (
         <div key={s} className="flex items-center gap-2">
           <div
             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-              currentIdx > i ? "bg-green-500 text-white" : step === s ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
+              currentIdx > i ? "bg-green-500 text-white" : step === s ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
             }`}
+            style={step === s ? { color: "var(--primary-foreground)" } : {}}
           >
             {currentIdx > i ? <Check className="h-3 w-3" /> : i + 1}
           </div>
-          <span className={step === s ? "text-indigo-600 font-medium" : currentIdx > i ? "text-green-600" : "text-gray-400"}>
+          <span className={step === s ? "font-medium" : currentIdx > i ? "text-green-600" : ""} style={step === s ? { color: "var(--primary)" } : currentIdx > i ? { color: "#22c55e" } : { color: "var(--muted-foreground)" }}>
             {stepLabels[i]}
           </span>
-          {i < steps.length - 1 && <span className="text-gray-300 mx-1">›</span>}
+          {i < steps.length - 1 && <span className="mx-1" style={{ color: "var(--border)" }}>›</span>}
         </div>
       ))}
     </div>
   );
 
-  // ── Full-screen layout for field placement (nothing scrolls except the PDF) ──
+  // Full-screen layout for field placement (nothing scrolls except the PDF)
   if (step === "fields" && document) {
     return (
-      <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
+      <div className="h-screen flex flex-col overflow-hidden" style={{ background: "var(--background)" }}>
         <NavBar />
 
         {/* Pinned header bar */}
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] shadow-sm">
           <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
 
             {/* Left: back + divider + icon + title */}
@@ -248,15 +249,16 @@ function SendPageInner() {
               variant="ghost"
               size="sm"
               onClick={() => setStep("document")}
-              className="text-gray-500 hover:text-gray-900 flex-shrink-0"
+              className="flex-shrink-0"
+              style={{ color: "var(--muted-foreground)" }}
             >
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
 
-            <div className="h-5 w-px bg-gray-200 flex-shrink-0" />
+            <div className="h-5 w-px bg-[var(--border)] flex-shrink-0" />
 
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center flex-shrink-0 shadow-sm">
                 {isTemplateMode
                   ? <Layers className="h-4 w-4 text-white" />
                   : <Send className="h-4 w-4 text-white" />
@@ -409,7 +411,7 @@ function SendPageInner() {
               Back to Fields
             </Button>
             <Button
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+              className="flex-1 bg-[var(--primary)] hover:opacity-90"
               onClick={handleSend}
               disabled={sending}
             >

@@ -155,20 +155,20 @@ export default function DocumentsPage() {
     bytes > 1_000_000 ? `${(bytes / 1_000_000).toFixed(1)} MB` : `${Math.round(bytes / 1000)} KB`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
       <main className="max-w-6xl mx-auto px-6 py-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Documents</h1>
           <div className="flex gap-3">
             <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleUpload} />
             <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
               <Upload className="h-4 w-4 mr-2" />
               {uploading ? "Uploading..." : "Upload Document"}
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/send")}>
+            <Button className="bg-[var(--primary)] hover:opacity-90" onClick={() => router.push("/send")}>
               <Send className="h-4 w-4 mr-2" /> Send Document
             </Button>
           </div>
@@ -176,7 +176,7 @@ export default function DocumentsPage() {
 
         {/* Search */}
         <div className="relative mb-6 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
           <Input className="pl-9" placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
@@ -194,7 +194,7 @@ export default function DocumentsPage() {
                 <p className="text-gray-500">{search ? "No matching documents" : "No documents yet"}</p>
                 {!search && (
                   <Button
-                    className="mt-4 bg-indigo-600 hover:bg-indigo-700"
+                    className="mt-4 bg-[var(--primary)] hover:opacity-90"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Upload your first PDF

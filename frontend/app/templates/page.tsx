@@ -44,14 +44,14 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
       <main className="max-w-6xl mx-auto px-6 py-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Templates</h1>
-          <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/documents")}>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Templates</h1>
+          <Button className="bg-[var(--primary)] hover:opacity-90" onClick={() => router.push("/documents")}>
             <Plus className="h-4 w-4 mr-2" /> Create Template
           </Button>
         </div>
@@ -63,15 +63,15 @@ export default function TemplatesPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-400">Loading...</div>
+              <div className="text-center py-8" style={{ color: "var(--muted-foreground)" }}>Loading...</div>
             ) : templates.length === 0 ? (
               <div className="text-center py-12">
-                <FileStack className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No templates yet</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Go to Documents, click ••• on any PDF and choose &quot;Save as Template&quot;
+                <FileStack className="h-12 w-12 mx-auto mb-4" style={{ color: "var(--muted)" }} />
+                <p style={{ color: "var(--muted-foreground)" }}>No templates yet</p>
+                <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)", opacity: 0.7 }}>
+                  Go to Documents, click ••• on any PDF and choose "Save as Template"
                 </p>
-                <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/documents")}>
+                <Button className="mt-4 bg-[var(--primary)] hover:opacity-90" onClick={() => router.push("/documents")}>
                   Go to Documents
                 </Button>
               </div>
@@ -108,7 +108,7 @@ export default function TemplatesPage() {
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button
                           size="sm"
-                          className="bg-indigo-600 hover:bg-indigo-700"
+                          className="bg-[var(--primary)] hover:opacity-90"
                           onClick={() => router.push(`/send?templateId=${t._id}`)}
                         >
                           <Send className="h-4 w-4 mr-1.5" /> Send

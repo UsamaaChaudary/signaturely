@@ -108,18 +108,18 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
       <main className="max-w-6xl mx-auto px-6 py-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Contacts</h1>
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <Upload className="h-4 w-4 mr-2" /> Import CSV
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setDrawerOpen(true)}>
+            <Button className="bg-[var(--primary)] hover:opacity-90" onClick={() => setDrawerOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" /> Add Contact
             </Button>
           </div>
@@ -127,7 +127,7 @@ export default function ContactsPage() {
 
         {/* Search */}
         <div className="relative mb-6 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
           <Input className="pl-9" placeholder="Search by name, email, company..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
@@ -144,7 +144,7 @@ export default function ContactsPage() {
                 <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">{search ? "No contacts found" : "No contacts yet"}</p>
                 {!search && (
-                  <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700" onClick={() => setDrawerOpen(true)}>
+                  <Button className="mt-4 bg-[var(--primary)] hover:opacity-90" onClick={() => setDrawerOpen(true)}>
                     Add your first contact
                   </Button>
                 )}
@@ -210,7 +210,7 @@ export default function ContactsPage() {
           </div>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setDrawerOpen(false)}>Cancel</Button>
-            <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700" onClick={handleCreate} disabled={saving}>
+            <Button className="flex-1 bg-[var(--primary)] hover:opacity-90" onClick={handleCreate} disabled={saving}>
               {saving ? "Saving..." : "Add Contact"}
             </Button>
           </div>

@@ -295,18 +295,17 @@ export default function NewDocumentPage() {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                   step === s
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-[var(--primary)] text-white"
                     : ["upload", "place", "signers"].indexOf(step) > i
                     ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-500"
+                    : "bg-[var(--muted)]"
                 }`}
               >
                 {i + 1}
               </div>
               <span
-                className={
-                  step === s ? "text-indigo-600 font-medium" : "text-gray-400"
-                }
+                className={step === s ? "font-medium" : ""}
+                style={step === s ? { color: "var(--primary)" } : { color: "var(--muted-foreground)" }}
               >
                 {s === "upload"
                   ? "Upload PDF"
@@ -314,7 +313,7 @@ export default function NewDocumentPage() {
                   ? "Place Fields"
                   : "Signers & Send"}
               </span>
-              {i < 2 && <span className="text-gray-300 mx-1">›</span>}
+              {i < 2 && <span className="mx-1" style={{ color: "var(--border)" }}>›</span>}
             </div>
           ))}
         </div>

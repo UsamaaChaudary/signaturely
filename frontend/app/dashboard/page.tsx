@@ -21,6 +21,20 @@ import {
 import PdfPreviewModal from "@/components/PdfPreviewModal";
 import { toast } from "sonner";
 
+const statusColors: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  in_progress: "bg-blue-100 text-blue-800",
+  completed: "bg-green-100 text-green-800",
+  cancelled: "bg-[var(--muted)] text-[var(--muted-foreground)]",
+};
+
+const statusIcons: Record<string, React.ElementType> = {
+  pending: Clock,
+  in_progress: Clock,
+  completed: CheckCircle,
+  cancelled: XCircle,
+};
+
 interface Signer {
   _id: string;
   name: string;
@@ -143,14 +157,14 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Dashboard</h1>
           <Link
             href="/send"
-            className={buttonVariants({ className: "bg-indigo-600 hover:bg-indigo-700" })}
+            className={buttonVariants({ className: "bg-[var(--primary)] hover:opacity-90" })}
           >
             <Plus className="h-4 w-4 mr-2" />
             Send Document
@@ -187,11 +201,11 @@ export default function Dashboard() {
               <div className="text-center py-8 text-gray-400">Loading...</div>
             ) : rows.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No signing requests yet.</p>
+                <FileText className="h-12 w-12 mx-auto mb-4" style={{ color: "var(--muted)" }} />
+                <p style={{ color: "var(--muted-foreground)" }}>No signing requests yet.</p>
                 <Link
                   href="/send"
-                  className={buttonVariants({ className: "mt-4 bg-indigo-600 hover:bg-indigo-700" })}
+                  className={buttonVariants({ className: "mt-4 bg-[var(--primary)] hover:opacity-90" })}
                 >
                   Send your first document
                 </Link>

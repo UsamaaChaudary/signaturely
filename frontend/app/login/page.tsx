@@ -59,11 +59,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--background)" }}>
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <FileSignature className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Signo</h1>
+          <FileSignature className="h-8 w-8" style={{ color: "var(--primary)" }} />
+          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Signo</h1>
         </div>
 
         <Tabs defaultValue="login">
@@ -109,7 +109,7 @@ export default function LoginPage() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    className="w-full bg-[var(--primary)] hover:opacity-90"
                     disabled={loading}
                   >
                     {loading ? "Signing in..." : "Sign In"}
@@ -174,7 +174,7 @@ export default function LoginPage() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    className="w-full bg-[var(--primary)] hover:opacity-90"
                     disabled={loading}
                   >
                     {loading ? "Creating account..." : "Create Account"}

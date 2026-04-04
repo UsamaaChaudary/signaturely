@@ -37,28 +37,28 @@ export default function NavBar() {
 
   return (
     <nav
-      className="sticky top-0 z-30 border-b border-slate-200"
-      style={{ background: "#f1f5f9", boxShadow: "0 1px 4px 0 rgba(0,0,0,0.07)" }}
+      className="sticky top-0 z-30 border-b border-[var(--border)]"
+      style={{ background: "var(--secondary)" }}
     >
       <div className="px-6 h-[62px] flex items-center gap-5">
 
-        {/* ── Logo ─────────────────────────────────────────────── */}
+        {/* Logo */}
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 flex-shrink-0 group cursor-pointer"
         >
-          <div className="w-[34px] h-[34px] rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm transition-all group-hover:bg-indigo-700">
+          <div className="w-[34px] h-[34px] rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-sm transition-all group-hover:opacity-90">
             <FileSignature className="h-[17px] w-[17px] text-white" />
           </div>
-          <span className="font-extrabold text-[16px] tracking-tight text-slate-900">
+          <span className="font-extrabold text-[16px] tracking-tight" style={{ color: "var(--foreground)" }}>
             Signo
           </span>
         </Link>
 
-        {/* ── Divider ───────────────────────────────────────────── */}
-        <div className="w-px h-5 bg-slate-300 flex-shrink-0" />
+        {/* Divider */}
+        <div className="w-px h-5 bg-[var(--border)] flex-shrink-0" />
 
-        {/* ── Nav links ─────────────────────────────────────────── */}
+        {/* Nav links */}
         <div className="flex items-center gap-1 flex-1">
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
             const active =
@@ -69,13 +69,13 @@ export default function NavBar() {
                 href={href}
                 className={`flex items-center gap-2 px-3.5 py-[7px] rounded-lg text-[13px] font-semibold tracking-wide transition-all duration-150 cursor-pointer ${
                   active
-                    ? "bg-white text-indigo-600 shadow-sm border border-slate-200"
-                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60"
+                    ? "bg-[var(--card)] text-[var(--primary)] shadow-sm border border-[var(--border)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
                 }`}
               >
                 <Icon
                   className={`h-[14px] w-[14px] flex-shrink-0 ${
-                    active ? "text-indigo-600" : "text-slate-400"
+                    active ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                   }`}
                 />
                 {label}
@@ -84,22 +84,23 @@ export default function NavBar() {
           })}
         </div>
 
-        {/* ── User section ─────────────────────────────────────── */}
+        {/* User section */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-[32px] h-[32px] rounded-full bg-indigo-600 flex items-center justify-center text-[11px] font-bold text-white shadow-sm select-none flex-shrink-0">
+            <div className="w-[32px] h-[32px] rounded-full bg-[var(--primary)] flex items-center justify-center text-[11px] font-bold text-white shadow-sm select-none flex-shrink-0">
               {initials}
             </div>
-            <span className="text-[13px] font-semibold text-slate-700 hidden md:block max-w-[140px] truncate">
+            <span className="text-[13px] font-semibold hidden md:block max-w-[140px] truncate" style={{ color: "var(--foreground)" }}>
               {user?.name}
             </span>
           </div>
 
-          <div className="w-px h-5 bg-slate-300" />
+          <div className="w-px h-5 bg-[var(--border)]" />
 
           <button
             onClick={logout}
-            className="flex items-center gap-1.5 text-[13px] text-slate-400 hover:text-slate-800 cursor-pointer transition-colors duration-150"
+            className="flex items-center gap-1.5 text-[13px] cursor-pointer transition-colors duration-150 hover:text-[var(--foreground)]"
+            style={{ color: "var(--muted-foreground)" }}
             title="Sign out"
           >
             <LogOut className="h-[15px] w-[15px]" />

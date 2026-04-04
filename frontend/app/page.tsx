@@ -10,7 +10,6 @@ import {
   Users,
   ArrowRight,
   Check,
-  Building2,
   Users2,
   Home,
   Scale,
@@ -81,33 +80,33 @@ const USE_CASES = [
 
 function NavBar() {
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-50 border-b" style={{ backgroundColor: '#FFFFFF', borderColor: '#D4D2CC' }}>
       <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <FileSignature className="h-7 w-7 text-indigo-600" />
-          <span className="font-bold text-xl text-gray-900">Signo</span>
+          <FileSignature className="h-7 w-7" style={{ color: '#1B7F5B' }} />
+          <span className="font-bold text-xl" style={{ color: '#1A1A1A' }}>Signo</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+          <Link href="#features" className="text-sm font-medium" style={{ color: '#6B6B6B' }}>
             Features
           </Link>
-          <Link href="#pricing" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+          <Link href="#pricing" className="text-sm font-medium" style={{ color: '#6B6B6B' }}>
             Pricing
           </Link>
-          <Link href="#use-cases" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+          <Link href="#use-cases" className="text-sm font-medium" style={{ color: '#6B6B6B' }}>
             Use Cases
           </Link>
-          <Link href="#about" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+          <Link href="#about" className="text-sm font-medium" style={{ color: '#6B6B6B' }}>
             About
           </Link>
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+          <Link href="/login" className="text-sm font-medium" style={{ color: '#6B6B6B' }}>
             Login
           </Link>
-          <Link href="/login" className={buttonVariants({ className: "bg-indigo-600 hover:bg-indigo-700" })}>
+          <Link href="/login" style={{ backgroundColor: '#1B7F5B', color: '#FFFFFF', padding: '8px 16px', borderRadius: '6px', fontSize: '14px', fontWeight: 500 }}>
             Sign Up Free
           </Link>
         </div>
@@ -118,19 +117,19 @@ function NavBar() {
 
 function Hero() {
   return (
-    <section className="bg-white border-b border-gray-200">
+    <section className="border-b" style={{ backgroundColor: '#FFFFFF', borderColor: '#D4D2CC' }}>
       <div className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="max-w-xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight" style={{ color: '#1A1A1A' }}>
               Sign documents in seconds
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 mt-6 leading-relaxed">
+            <p className="text-lg md:text-xl mt-6 leading-relaxed" style={{ color: '#6B6B6B' }}>
               Simple, legally binding e-signatures. No complexity, just send and done.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Link href="/login">
-                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto">
+                <Button size="lg" style={{ backgroundColor: '#1B7F5B', color: '#FFFFFF' }}>
                   Start Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -141,34 +140,34 @@ function Hero() {
                 </Button>
               </Link>
             </div>
-            <div className="flex items-center gap-6 mt-8 text-sm text-gray-500">
+            <div className="flex items-center gap-6 mt-8 text-sm" style={{ color: '#6B6B6B' }}>
               <span className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-600" />
+                <Check className="h-4 w-4" style={{ color: '#1B7F5B' }} />
                 No credit card required
               </span>
               <span className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-600" />
+                <Check className="h-4 w-4" style={{ color: '#1B7F5B' }} />
                 Free forever plan
               </span>
             </div>
           </div>
 
-          <div className="hidden md:block bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 border border-indigo-100">
-            <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="hidden md:block rounded-2xl p-8 border" style={{ backgroundColor: '#E8E6DF', borderColor: '#D4D2CC' }}>
+            <div className="rounded-xl shadow-lg p-6" style={{ backgroundColor: '#FFFFFF' }}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-3 h-3 rounded-full bg-red-400" />
-                <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                <div className="w-3 h-3 rounded-full bg-green-400" />
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B22234' }} />
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#F4D03F' }} />
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1B7F5B' }} />
               </div>
               <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                <div className="h-4 bg-gray-200 rounded w-1/2" />
-                <div className="h-24 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                  <span className="text-gray-400 text-sm">Document Preview</span>
+                <div className="h-4 rounded w-3/4" style={{ backgroundColor: '#E8E6DF' }} />
+                <div className="h-4 rounded w-1/2" style={{ backgroundColor: '#E8E6DF' }} />
+                <div className="h-24 rounded-lg border-2 border-dashed flex items-center justify-center" style={{ backgroundColor: '#F5F4EE', borderColor: '#D4D2CC' }}>
+                  <span className="text-sm" style={{ color: '#6B6B6B' }}>Document Preview</span>
                 </div>
                 <div className="flex gap-2">
-                  <div className="h-8 bg-indigo-100 rounded w-24" />
-                  <div className="h-8 bg-indigo-100 rounded w-24" />
+                  <div className="h-8 rounded w-24" style={{ backgroundColor: '#1B7F5B', opacity: 0.2 }} />
+                  <div className="h-8 rounded w-24" style={{ backgroundColor: '#1B7F5B', opacity: 0.2 }} />
                 </div>
               </div>
             </div>
@@ -181,26 +180,26 @@ function Hero() {
 
 function SocialProof() {
   return (
-    <section className="bg-white border-b border-gray-200 py-12">
+    <section className="py-12 border-b" style={{ backgroundColor: '#FFFFFF', borderColor: '#D4D2CC' }}>
       <div className="max-w-7xl mx-auto px-6">
-        <p className="text-center text-gray-500 font-medium mb-8">
+        <p className="text-center font-medium mb-8" style={{ color: '#6B6B6B' }}>
           Trusted by 10,000+ businesses
         </p>
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
           {["Acme Corp", "TechStart", "GlobalInc", "DataFlow", "CloudBase"].map((company) => (
-            <span key={company} className="text-xl font-semibold text-gray-400">
+            <span key={company} className="text-xl font-semibold" style={{ color: '#6B6B6B' }}>
               {company}
             </span>
           ))}
         </div>
         <div className="flex justify-center gap-8 md:gap-16 mt-10">
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">500K+</div>
-            <div className="text-sm text-gray-500">Documents Signed</div>
+            <div className="text-3xl font-bold" style={{ color: '#1A1A1A' }}>500K+</div>
+            <div className="text-sm" style={{ color: '#6B6B6B' }}>Documents Signed</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">98%</div>
-            <div className="text-sm text-gray-500">Customer Satisfaction</div>
+            <div className="text-3xl font-bold" style={{ color: '#1A1A1A' }}>98%</div>
+            <div className="text-sm" style={{ color: '#6B6B6B' }}>Customer Satisfaction</div>
           </div>
         </div>
       </div>
@@ -210,13 +209,13 @@ function SocialProof() {
 
 function Features() {
   return (
-    <section id="features" className="bg-gray-50 py-20 md:py-28">
+    <section id="features" className="py-20 md:py-28" style={{ backgroundColor: '#F5F4EE' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: '#1A1A1A' }}>
             Everything you need to sign documents
           </h2>
-          <p className="text-lg text-gray-600 mt-4">
+          <p className="text-lg mt-4" style={{ color: '#6B6B6B' }}>
             Powerful features that make document signing simple and secure.
           </p>
         </div>
@@ -225,13 +224,14 @@ function Features() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+              className="rounded-xl p-6 border hover:shadow-lg transition-shadow"
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#D4D2CC' }}
             >
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-indigo-600" />
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: '#1B7F5B', opacity: 0.1 }}>
+                <feature.icon className="h-6 w-6" style={{ color: '#1B7F5B' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{feature.title}</h3>
-              <p className="text-gray-600 mt-2">{feature.description}</p>
+              <h3 className="text-lg font-semibold" style={{ color: '#1A1A1A' }}>{feature.title}</h3>
+              <p className="mt-2" style={{ color: '#6B6B6B' }}>{feature.description}</p>
             </div>
           ))}
         </div>
@@ -242,13 +242,13 @@ function Features() {
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-white py-20 md:py-28">
+    <section id="how-it-works" className="py-20 md:py-28" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: '#1A1A1A' }}>
             How it works
           </h2>
-          <p className="text-lg text-gray-600 mt-4">
+          <p className="text-lg mt-4" style={{ color: '#6B6B6B' }}>
             Get documents signed in three simple steps.
           </p>
         </div>
@@ -257,13 +257,13 @@ function HowItWorks() {
           {STEPS.map((step, index) => (
             <div key={step.number} className="text-center relative">
               {index < STEPS.length - 1 && (
-                <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gray-200 -z-10" />
+                <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 -z-10" style={{ backgroundColor: '#D4D2CC' }} />
               )}
-              <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#1B7F5B' }}>
                 <span className="text-2xl font-bold text-white">{step.number}</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
-              <p className="text-gray-600 mt-2">{step.description}</p>
+              <h3 className="text-xl font-semibold" style={{ color: '#1A1A1A' }}>{step.title}</h3>
+              <p className="mt-2" style={{ color: '#6B6B6B' }}>{step.description}</p>
             </div>
           ))}
         </div>
@@ -274,13 +274,13 @@ function HowItWorks() {
 
 function UseCases() {
   return (
-    <section id="use-cases" className="bg-gray-50 py-20 md:py-28">
+    <section id="use-cases" className="py-20 md:py-28" style={{ backgroundColor: '#F5F4EE' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: '#1A1A1A' }}>
             Popular use cases
           </h2>
-          <p className="text-lg text-gray-600 mt-4">
+          <p className="text-lg mt-4" style={{ color: '#6B6B6B' }}>
             From sales contracts to legal agreements, Signo handles it all.
           </p>
         </div>
@@ -289,12 +289,13 @@ function UseCases() {
           {USE_CASES.map((useCase) => (
             <div
               key={useCase.title}
-              className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all cursor-pointer"
+              className="rounded-xl p-6 border hover:shadow-lg transition-all cursor-pointer"
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#D4D2CC' }}
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <useCase.icon className="h-6 w-6 text-purple-600" />
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: '#F4D03F', opacity: 0.8 }}>
+                <useCase.icon className="h-6 w-6" style={{ color: '#1A1A1A' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{useCase.title}</h3>
+              <h3 className="text-lg font-semibold" style={{ color: '#1A1A1A' }}>{useCase.title}</h3>
             </div>
           ))}
         </div>
@@ -305,16 +306,16 @@ function UseCases() {
 
 function FinalCTA() {
   return (
-    <section className="bg-white py-20 md:py-28">
+    <section className="py-20 md:py-28" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <h2 className="text-3xl md:text-4xl font-bold" style={{ color: '#1A1A1A' }}>
           Ready to get started?
         </h2>
-        <p className="text-lg text-gray-600 mt-4 mb-8">
+        <p className="text-lg mt-4 mb-8" style={{ color: '#6B6B6B' }}>
           Start signing documents today - No credit card required
         </p>
         <Link href="/login">
-          <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+          <Button size="lg" style={{ backgroundColor: '#1B7F5B', color: '#FFFFFF' }}>
             Start Free Trial
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
@@ -326,21 +327,21 @@ function FinalCTA() {
 
 function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-400 py-12">
+    <footer className="py-12" style={{ backgroundColor: '#1A1A1A' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <FileSignature className="h-6 w-6 text-white" />
-            <span className="font-bold text-xl text-white">Signo</span>
+            <FileSignature className="h-6 w-6" style={{ color: '#F5F4EE' }} />
+            <span className="font-bold text-xl" style={{ color: '#F5F4EE' }}>Signo</span>
           </div>
           <div className="flex items-center gap-6 text-sm">
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="#" style={{ color: '#6B6B6B' }}>
               Privacy Policy
             </Link>
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="#" style={{ color: '#6B6B6B' }}>
               Terms of Service
             </Link>
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="#" style={{ color: '#6B6B6B' }}>
               Contact
             </Link>
           </div>
@@ -355,7 +356,7 @@ function Footer() {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5F4EE' }}>
       <NavBar />
       <Hero />
       <SocialProof />
