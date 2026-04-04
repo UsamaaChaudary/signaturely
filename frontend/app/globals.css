@@ -54,94 +54,94 @@
 }
 
 :root {
-  --background: #F5F4EE;
-  --foreground: #1A1A1A;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
   --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
+  --card-foreground: #0F172A;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  --primary: #1B7F5B;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;
   --primary-foreground: #FFFFFF;
-  --secondary: #F5F4EE;
-  --secondary-foreground: #1A1A1A;
-  --muted: #E8E6DF;
-  --muted-foreground: #6B6B6B;
-  --accent: #F4D03F;
-  --accent-foreground: #1A1A1A;
-  --destructive: #B22234;
-  --border: #D4D2CC;
-  --input: #D4D2CC;
-  --ring: #1B7F5B;
-  --chart-1: #1B7F5B;
-  --chart-2: #F4D03F;
-  --chart-3: #8BC34A;
-  --chart-4: #003399;
-  --chart-5: #B22234;
+  --secondary: #F8FAFC;
+  --secondary-foreground: #0F172A;
+  --muted: #E2E8F0;
+  --muted-foreground: #475569;
+  --accent: #EFF6FF;
+  --accent-foreground: #1D4ED8;
+  --destructive: #DC2626;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #2563EB;
+  --chart-1: #2563EB;
+  --chart-2: #06B6D4;
+  --chart-3: #10B981;
+  --chart-4: #8B5CF6;
+  --chart-5: #DC2626;
   --radius: 0.625rem;
-  --sidebar: #F5F4EE;
-  --sidebar-foreground: #1A1A1A;
-  --sidebar-primary: #1B7F5B;
+  --sidebar: #F8FAFC;
+  --sidebar-foreground: #0F172A;
+  --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F4D03F;
-  --sidebar-accent-foreground: #1A1A1A;
-  --sidebar-border: #D4D2CC;
-  --sidebar-ring: #1B7F5B;
+  --sidebar-accent: #EFF6FF;
+  --sidebar-accent-foreground: #1D4ED8;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #2563EB;
 
-  --brand: #1B7F5B;
+  --brand: #2563EB;
   --brand-foreground: #FFFFFF;
-  --accent-yellow: #F4D03F;
-  --accent-green: #8BC34A;
+  --accent-yellow: #F59E0B;
+  --accent-green: #10B981;
 
-  --color-primary: #1B7F5B;
+  --color-primary: #2563EB;
   --color-primary-foreground: #FFFFFF;
-  --color-background: #F5F4EE;
-  --color-foreground: #1A1A1A;
+  --color-background: #F8FAFC;
+  --color-foreground: #0F172A;
   --color-card: #FFFFFF;
-  --color-card-foreground: #1A1A1A;
-  --color-muted: #E8E6DF;
-  --color-muted-foreground: #6B6B6B;
-  --color-border: #D4D2CC;
-  --color-accent: #F4D03F;
-  --color-accent-foreground: #1A1A1A;
+  --color-card-foreground: #0F172A;
+  --color-muted: #E2E8F0;
+  --color-muted-foreground: #475569;
+  --color-border: #E2E8F0;
+  --color-accent: #EFF6FF;
+  --color-accent-foreground: #1D4ED8;
 }
 
 body {
-  background-color: #F5F4EE !important;
-  color: #1A1A1A !important;
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
 }
 
 .dark {
-  --background: #1A1A1A;
-  --foreground: #F5F4EE;
-  --card: #2A2A2A;
-  --card-foreground: #F5F4EE;
-  --popover: #2A2A2A;
-  --popover-foreground: #F5F4EE;
-  --primary: #1B7F5B;
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --card-foreground: #F8FAFC;
+  --popover: #1E293B;
+  --popover-foreground: #F8FAFC;
+  --primary: #3B82F6;
   --primary-foreground: #FFFFFF;
-  --secondary: #2A2A2A;
-  --secondary-foreground: #F5F4EE;
-  --muted: #3A3A3A;
-  --muted-foreground: #A0A0A0;
-  --accent: #F4D03F;
-  --accent-foreground: #1A1A1A;
-  --destructive: #B22234;
-  --border: #404040;
-  --input: #404040;
-  --ring: #1B7F5B;
-  --chart-1: #1B7F5B;
-  --chart-2: #F4D03F;
-  --chart-3: #8BC34A;
-  --chart-4: #003399;
-  --chart-5: #B22234;
-  --sidebar: #2A2A2A;
-  --sidebar-foreground: #F5F4EE;
-  --sidebar-primary: #1B7F5B;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #334155;
+  --muted-foreground: #94A3B8;
+  --accent: #1E3A5F;
+  --accent-foreground: #93C5FD;
+  --destructive: #EF4444;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3B82F6;
+  --chart-1: #3B82F6;
+  --chart-2: #22D3EE;
+  --chart-3: #34D399;
+  --chart-4: #A78BFA;
+  --chart-5: #F87171;
+  --sidebar: #1E293B;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #3B82F6;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F4D03F;
-  --sidebar-accent-foreground: #1A1A1A;
-  --sidebar-border: #404040;
-  --sidebar-ring: #1B7F5B;
+  --sidebar-accent: #1E3A5F;
+  --sidebar-accent-foreground: #93C5FD;
+  --sidebar-border: #334155;
+  --sidebar-ring: #3B82F6;
 }
 
 @layer base {
@@ -160,12 +160,12 @@ body {
     font-size: 14px;
     line-height: 1.6;
     font-weight: 400;
-    color: #1A1A1A !important;
-    background-color: #F5F4EE !important;
+    color: #0F172A !important;
+    background-color: #F8FAFC !important;
   }
   h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
-    color: #1A1A1A;
+    color: #0F172A;
     letter-spacing: -0.01em;
     line-height: 1.3;
   }

@@ -57,6 +57,32 @@ Before implementing features or fixing bugs, check the `/docs` folder at the rep
 - **`docs/FEATURES.md`** — planned features with frontend implementation notes
 - **`docs/BUGS.md`** — known bugs and their fix options
 
+## Design System
+
+### Color Theme — Blue (updated April 2026)
+The app-wide theme uses a **blue/indigo palette** to match the marketing landing page (`app/page.tsx`).
+All colors are defined as CSS custom properties in `app/globals.css` and consumed via `var(--*)` throughout the app.
+
+| Token | Light value | Usage |
+|-------|-------------|-------|
+| `--primary` | `#2563EB` (blue-600) | Buttons, links, active states |
+| `--primary-foreground` | `#FFFFFF` | Text on primary bg |
+| `--background` | `#F8FAFC` (slate-50) | Page background |
+| `--foreground` | `#0F172A` (slate-900) | Body text |
+| `--card` | `#FFFFFF` | Card surfaces |
+| `--muted` | `#E2E8F0` (slate-200) | Subtle backgrounds |
+| `--muted-foreground` | `#475569` (slate-600) | Secondary text |
+| `--border` | `#E2E8F0` | Borders & dividers |
+| `--ring` | `#2563EB` | Focus rings |
+| `--destructive` | `#DC2626` | Error/danger |
+
+**Do not** reintroduce the old green (`#1B7F5B`) palette. Any new UI should use `var(--primary)` for the brand color.
+
+### Marketing → App CTA flow
+`app/page.tsx` hero has an inline email + "Start Free" form.
+On submit it routes to `/login?email=<value>`.
+`app/login/page.tsx` reads the `?email` param via `useSearchParams`, auto-switches to the **Register** tab, and pre-fills the email field. The inner component is wrapped in `<Suspense>` (required by Next.js for `useSearchParams` in App Router).
+
 ## Known Issues
 
 ### PDF Download from Cloudinary (TODO)

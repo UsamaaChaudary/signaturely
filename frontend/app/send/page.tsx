@@ -393,20 +393,6 @@ function SendPageInner() {
             />
           </div>
 
-          {/* Signer assignment summary */}
-          {fields.length > 0 && (
-            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-              {signers.map((s, i) => {
-                const count = fields.filter((f) => f.signerId === s.id).length;
-                return (
-                  <div key={s.id} className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: SIGNER_COLORS[i] }} />
-                    <span className="truncate">Signer {i + 1}: {count} field{count !== 1 ? "s" : ""}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           <div>
             <Label className="mb-2 block">Signers</Label>
