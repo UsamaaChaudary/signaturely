@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Blue rounded square background -->
+  <rect width="32" height="32" rx="8" fill="#2563EB"/>
+  <!-- Stylised pen/signature path in white -->
+  <path d="M8 22 C11 15, 14 19, 16 16 C18 13, 20 18, 23 15" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Underline -->
+  <line x1="8" y1="25" x2="24" y2="25" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+</svg>
