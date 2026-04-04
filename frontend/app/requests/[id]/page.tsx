@@ -152,7 +152,7 @@ export default function RequestDetailPage({
       <NavBar />
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "sm" })}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Link>
           <h1 className="text-xl font-bold text-gray-900 flex-1">
