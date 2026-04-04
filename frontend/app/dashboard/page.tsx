@@ -36,8 +36,20 @@ const statusIcons: Record<string, React.ElementType> = {
 };
 
 interface Signer {
+  _id: string;
   status: string;
   signingToken?: string;
+}
+
+interface RequestField {
+  signerId: string;
+  type: string;
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  required: boolean;
 }
 
 interface Request {
@@ -48,6 +60,7 @@ interface Request {
   completedFilePath?: string;
   documentId?: { originalName: string; filePath?: string; pageCount?: number };
   signers?: Signer[];
+  fields?: RequestField[];
 }
 
 export default function Dashboard() {
@@ -310,12 +323,29 @@ export default function Dashboard() {
           ? previewReq.completedFilePath
           : previewReq.documentId?.filePath;
         if (!filePath) return null;
+
+        // Map request fields → PreviewField format (signerSlot = 1-based index in signers array)
+        const previewFields = (previewReq.fields ?? []).map((f) => {
+          const signerIdx = previewReq.signers?.findIndex((s) => s._id === f.signerId) ?? 0;
+          return {
+            type: f.type,
+            page: f.page,
+            x: f.x,
+            y: f.y,
+            width: f.width,
+            height: f.height,
+            required: f.required,
+            signerSlot: String(signerIdx + 1),
+          };
+        });
+
         return (
           <PdfPreviewModal
             fileName={previewReq.title}
             filePath={filePath}
             pageCount={previewReq.documentId?.pageCount ?? 1}
             onClose={() => setPreviewReq(null)}
+            previewFields={previewFields}
           />
         );
       })()}
