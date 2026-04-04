@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import PageLayout from "@/components/PageLayout";
 import NavBar from "@/components/NavBar";
 import DocumentPicker from "@/components/DocumentPicker";
-import FieldPlacer, { Field, Signer, SIGNER_COLORS } from "@/components/FieldPlacer";
+import FieldPlacer, { Field, Signer, Annotation, SIGNER_COLORS } from "@/components/FieldPlacer";
 import ContactSearchInput from "@/components/ContactSearchInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 type Step = "document" | "fields" | "signers";
 
 interface Doc { _id: string; originalName: string; filePath?: string; pageCount: number; }
-interface Template { _id: string; name: string; documentId: { _id: string; filePath: string; originalName: string; pageCount: number }; fields: Field[]; signerCount: number; }
+interface Template { _id: string; name: string; documentId: { _id: string; filePath: string; originalName: string; pageCount: number }; fields: Field[]; signerCount: number; annotations: Annotation[]; }
 
 function SendPageInner() {
   useRequireAuth();
@@ -40,6 +40,7 @@ function SendPageInner() {
   const [pdfPages,       setPdfPages]       = useState<HTMLCanvasElement[]>([]);
   const [loadingPdf,     setLoadingPdf]     = useState(false);
   const [fields,         setFields]         = useState<Field[]>([]);
+  const [annotations,    setAnnotations]    = useState<Annotation[]>([]);
   const [signers,        setSigners]        = useState<Signer[]>([{ id: "1", name: "", email: "", contactId: null }]);
   const [selectedTool,   setSelectedTool]   = useState<string | null>(null);
   const [selectedSigner, setSelectedSigner] = useState("1");
@@ -89,6 +90,12 @@ function SendPageInner() {
           signerId: f.signerSlot || f.signerId || "1",
         }));
         setFields(preFields);
+        // Pre-load template annotations
+        const preAnnotations: Annotation[] = (t.annotations || []).map((a: Annotation) => ({
+          ...a,
+          id: Math.random().toString(36).slice(2),
+        }));
+        setAnnotations(preAnnotations);
         // Pre-build signer slots
         const slots: Signer[] = Array.from({ length: t.signerCount }, (_, i) => ({
           id: (i + 1).toString(), name: "", email: "", contactId: null,
@@ -129,14 +136,27 @@ function SendPageInner() {
   const handleSaveTemplate = async (name: string) => {
     if (!document) { toast.error("No document selected"); return; }
     setSavingTemplate(true);
+    const fieldPayload = fields.map((f) => ({ signerSlot: f.signerId, type: f.type, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required }));
+    const annotationPayload = annotations.map((a) => ({ ...a }));
     try {
-      await api.createTemplate({
-        documentId:  document._id,
-        name:        name.trim(),
-        signerCount: signers.length,
-        fields:      fields.map((f) => ({ signerSlot: f.signerId, type: f.type, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required })),
-      });
-      toast.success("Template saved!", { description: name });
+      if (mode === "edit" && template?._id) {
+        await api.updateTemplate(template._id, {
+          name:        name.trim(),
+          signerCount: signers.length,
+          fields:      fieldPayload,
+          annotations: annotationPayload,
+        });
+        toast.success("Template updated!", { description: name });
+      } else {
+        await api.createTemplate({
+          documentId:  document._id,
+          name:        name.trim(),
+          signerCount: signers.length,
+          fields:      fieldPayload,
+          annotations: annotationPayload,
+        });
+        toast.success("Template saved!", { description: name });
+      }
       if (isTemplateMode) router.push("/templates");
     } catch (err: unknown) {
       toast.error("Save failed", { description: err instanceof Error ? err.message : "Error" });
@@ -195,6 +215,7 @@ function SendPageInner() {
           signerMapping: [{ tempId: "1", index: 0 }],
           contactIds:    [signer.contactId || null],
           templateId:    template?._id || null,
+          annotations:   annotations,
         });
       }
 
@@ -282,11 +303,15 @@ function SendPageInner() {
 
             {/* Right: fields count + primary CTA */}
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              {fields.length > 0 && (
+              {(fields.length > 0 || annotations.length > 0) && (
                 <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
                   <FileText className="h-3 w-3" />
-                  <span className="hidden sm:inline">{fields.length} field{fields.length !== 1 ? "s" : ""} placed</span>
-                  <span className="sm:hidden">{fields.length}</span>
+                  <span className="hidden sm:inline">
+                    {fields.length > 0 && `${fields.length} field${fields.length !== 1 ? "s" : ""}`}
+                    {fields.length > 0 && annotations.length > 0 && " · "}
+                    {annotations.length > 0 && `${annotations.length} text box${annotations.length !== 1 ? "es" : ""}`}
+                  </span>
+                  <span className="sm:hidden">{fields.length + annotations.length}</span>
                 </span>
               )}
               <Button
@@ -342,6 +367,8 @@ function SendPageInner() {
             onBack={() => setStep("document")}
             nextLabel={isTemplateMode ? (savingTemplate ? "Saving..." : "Save Template") : "Next Step"}
             onSaveTemplate={!isTemplateMode ? handleSaveTemplate : undefined}
+            annotations={annotations}
+            onAnnotationsChange={setAnnotations}
           />
         </div>
       </div>

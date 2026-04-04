@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { documentId, title, message, signers, fields, signerMapping, contactIds, templateId } = req.body;
+    const { documentId, title, message, signers, fields, signerMapping, contactIds, templateId, annotations } = req.body;
 
     // Verify document ownership
     const doc = await Document.findOne({ _id: documentId, ownerId: req.user._id });
@@ -34,6 +34,7 @@ router.post('/', auth, async (req, res) => {
       message: message || '',
       signers: signersWithTokens,
       fields: [],
+      annotations: annotations || [],
       status: 'pending',
     });
 

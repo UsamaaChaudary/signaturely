@@ -12,6 +12,7 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
+  Edit3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,28 @@ export interface Field {
   required: boolean;
 }
 
+export interface Annotation {
+  id: string;
+  type: "text";
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string;
+  fontSize: number;
+  /**
+   * fontSize expressed as a fraction of the page's natural pixel width at placement time.
+   * Stored so every render context (FieldPlacer, sign page, preview modal) can compute
+   * `fontSize_px = fontSizeRatio * containerWidth_px`, making text wrapping consistent
+   * regardless of the rendered container width. Falls back to `fontSize` when absent
+   * (backward compat with annotations saved before this field was introduced).
+   */
+  fontSizeRatio?: number;
+  bold: boolean;
+  color: string;
+}
+
 export interface Signer {
   id: string;
   name: string;
@@ -61,14 +84,17 @@ interface Props {
   onBack: () => void;
   nextLabel?: string;
   onSaveTemplate?: (name: string) => Promise<void>;
+  annotations: Annotation[];
+  onAnnotationsChange: (annotations: Annotation[]) => void;
 }
 
 const DEFAULT_SIZES: Record<string, { w: number; h: number }> = {
-  signature: { w: 0.25, h: 0.07 },
-  initials:  { w: 0.12, h: 0.06 },
-  date:      { w: 0.18, h: 0.05 },
-  text:      { w: 0.20, h: 0.05 },
-  checkbox:  { w: 0.04, h: 0.04 },
+  signature:  { w: 0.25, h: 0.07 },
+  initials:   { w: 0.12, h: 0.06 },
+  date:       { w: 0.18, h: 0.05 },
+  text:       { w: 0.20, h: 0.05 },
+  checkbox:   { w: 0.04, h: 0.04 },
+  annotation: { w: 0.25, h: 0.06 },
 };
 
 // 8-directional resize handles — corners + edge midpoints
@@ -104,11 +130,13 @@ export default function FieldPlacer({
   onBack,
   nextLabel = "Next Step",
   onSaveTemplate,
+  annotations,
+  onAnnotationsChange,
 }: Props) {
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const pageEls = useRef<(HTMLDivElement | null)[]>([]);
 
-  // ── Resize drag state ────────────────────────────────────────────────
+  // ── Signer field drag state ───────────────────────────────────────────
   const resizingRef = useRef<{
     fieldId: string;
     startMouseX: number;
@@ -121,9 +149,32 @@ export default function FieldPlacer({
     edges: Edges;
   } | null>(null);
 
-  // ── Move drag state ──────────────────────────────────────────────────
   const movingRef = useRef<{
     fieldId: string;
+    startMouseX: number;
+    startMouseY: number;
+    startFieldX: number;
+    startFieldY: number;
+    fieldWidth: number;
+    fieldHeight: number;
+    containerRect: DOMRect;
+  } | null>(null);
+
+  // ── Annotation drag state (mirrors field drag) ────────────────────────
+  const resizingAnnotationRef = useRef<{
+    annotationId: string;
+    startMouseX: number;
+    startMouseY: number;
+    startFieldX: number;
+    startFieldY: number;
+    startFieldW: number;
+    startFieldH: number;
+    containerRect: DOMRect;
+    edges: Edges;
+  } | null>(null);
+
+  const movingAnnotationRef = useRef<{
+    annotationId: string;
     startMouseX: number;
     startMouseY: number;
     startFieldX: number;
@@ -141,6 +192,14 @@ export default function FieldPlacer({
   useEffect(() => { fieldsRef.current = fields; }, [fields]);
   useEffect(() => { onFieldsChangeRef.current = onFieldsChange; }, [onFieldsChange]);
 
+  const annotationsRef = useRef(annotations);
+  const onAnnotationsChangeRef = useRef(onAnnotationsChange);
+  useEffect(() => { annotationsRef.current = annotations; }, [annotations]);
+  useEffect(() => { onAnnotationsChangeRef.current = onAnnotationsChange; }, [onAnnotationsChange]);
+
+  // ── Annotation inline editing ─────────────────────────────────────────
+  const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
+
   // ── Template-save UI state ───────────────────────────────────────────
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [tmplName,         setTmplName]         = useState("");
@@ -155,10 +214,50 @@ export default function FieldPlacer({
   const zoomOut   = () => setZoom((z) => Math.max(ZOOM_MIN, parseFloat((z - ZOOM_STEP).toFixed(2))));
   const zoomReset = () => setZoom(1.0);
 
+  // ── Per-page rendered widths (for fontSizeRatio → px conversion) ──────
+  // Measured after each render so annotation font sizes scale proportionally
+  // with the page container width, just like x/y/width/height fractions do.
+  const [pageWidths, setPageWidths] = useState<number[]>([]);
+  useEffect(() => {
+    const widths = pageEls.current.map(el => el?.offsetWidth ?? 0);
+    if (widths.some(w => w > 0)) setPageWidths([...widths]);
+  }, [pdfPages, zoom]);
+
+  /** Compute the rendered font size for an annotation on a given page. */
+  const scaledFontSize = (annotation: Annotation, pageIndex: number): number => {
+    if (!annotation.fontSizeRatio) return annotation.fontSize;
+    const w = pageWidths[pageIndex];
+    return w > 0 ? annotation.fontSizeRatio * w : annotation.fontSize;
+  };
+
   // ── Global mouse handlers ────────────────────────────────────────────
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
-      // Resize takes priority over move
+      // Annotation resize takes highest priority
+      const ra = resizingAnnotationRef.current;
+      if (ra) {
+        const { annotationId, startMouseX, startMouseY, startFieldX, startFieldY, startFieldW, startFieldH, containerRect, edges } = ra;
+        const dx = (e.clientX - startMouseX) / containerRect.width;
+        const dy = (e.clientY - startMouseY) / containerRect.height;
+
+        let x = startFieldX, y = startFieldY, w = startFieldW, h = startFieldH;
+        if (edges.right)  { w = Math.max(0.04, Math.min(startFieldW + dx, 1 - startFieldX)); }
+        if (edges.bottom) { h = Math.max(0.03, Math.min(startFieldH + dy, 1 - startFieldY)); }
+        if (edges.left) {
+          const cDx = Math.max(-startFieldX, Math.min(dx, startFieldW - 0.04));
+          x = startFieldX + cDx; w = startFieldW - cDx;
+        }
+        if (edges.top) {
+          const cDy = Math.max(-startFieldY, Math.min(dy, startFieldH - 0.03));
+          y = startFieldY + cDy; h = startFieldH - cDy;
+        }
+        onAnnotationsChangeRef.current(
+          annotationsRef.current.map(a => a.id === annotationId ? { ...a, x, y, width: w, height: h } : a)
+        );
+        return;
+      }
+
+      // Signer field resize
       const r = resizingRef.current;
       if (r) {
         const { fieldId, startMouseX, startMouseY, startFieldX, startFieldY, startFieldW, startFieldH, containerRect, edges } = r;
@@ -166,31 +265,38 @@ export default function FieldPlacer({
         const dy = (e.clientY - startMouseY) / containerRect.height;
 
         let x = startFieldX, y = startFieldY, w = startFieldW, h = startFieldH;
-
-        if (edges.right) {
-          w = Math.max(0.04, Math.min(startFieldW + dx, 1 - startFieldX));
-        }
-        if (edges.bottom) {
-          h = Math.max(0.03, Math.min(startFieldH + dy, 1 - startFieldY));
-        }
+        if (edges.right)  { w = Math.max(0.04, Math.min(startFieldW + dx, 1 - startFieldX)); }
+        if (edges.bottom) { h = Math.max(0.03, Math.min(startFieldH + dy, 1 - startFieldY)); }
         if (edges.left) {
           const cDx = Math.max(-startFieldX, Math.min(dx, startFieldW - 0.04));
-          x = startFieldX + cDx;
-          w = startFieldW - cDx;
+          x = startFieldX + cDx; w = startFieldW - cDx;
         }
         if (edges.top) {
           const cDy = Math.max(-startFieldY, Math.min(dy, startFieldH - 0.03));
-          y = startFieldY + cDy;
-          h = startFieldH - cDy;
+          y = startFieldY + cDy; h = startFieldH - cDy;
         }
-
         onFieldsChangeRef.current(
           fieldsRef.current.map(f => f.id === fieldId ? { ...f, x, y, width: w, height: h } : f)
         );
         return;
       }
 
-      // Move
+      // Annotation move
+      const ma = movingAnnotationRef.current;
+      if (ma) {
+        dragHappenedRef.current = true;
+        const { annotationId, startMouseX, startMouseY, startFieldX, startFieldY, fieldWidth, fieldHeight, containerRect } = ma;
+        const dx = (e.clientX - startMouseX) / containerRect.width;
+        const dy = (e.clientY - startMouseY) / containerRect.height;
+        const newX = Math.max(0, Math.min(startFieldX + dx, 1 - fieldWidth));
+        const newY = Math.max(0, Math.min(startFieldY + dy, 1 - fieldHeight));
+        onAnnotationsChangeRef.current(
+          annotationsRef.current.map(a => a.id === annotationId ? { ...a, x: newX, y: newY } : a)
+        );
+        return;
+      }
+
+      // Signer field move
       const m = movingRef.current;
       if (!m) return;
       dragHappenedRef.current = true;
@@ -207,6 +313,8 @@ export default function FieldPlacer({
     const onMouseUp = () => {
       resizingRef.current = null;
       movingRef.current = null;
+      resizingAnnotationRef.current = null;
+      movingAnnotationRef.current = null;
     };
 
     document.addEventListener("mousemove", onMouseMove);
@@ -217,7 +325,7 @@ export default function FieldPlacer({
     };
   }, []);
 
-  // ── Callbacks ────────────────────────────────────────────────────────
+  // ── Signer field callbacks ────────────────────────────────────────────
   const startResize = useCallback((
     e: React.MouseEvent,
     field: Field,
@@ -255,6 +363,58 @@ export default function FieldPlacer({
     };
   }, []);
 
+  // ── Annotation callbacks ──────────────────────────────────────────────
+  const startResizeAnnotation = useCallback((
+    e: React.MouseEvent,
+    annotation: Annotation,
+    containerEl: HTMLDivElement,
+    edges: Edges,
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    resizingAnnotationRef.current = {
+      annotationId: annotation.id,
+      startMouseX:  e.clientX,
+      startMouseY:  e.clientY,
+      startFieldX:  annotation.x,
+      startFieldY:  annotation.y,
+      startFieldW:  annotation.width,
+      startFieldH:  annotation.height,
+      containerRect: containerEl.getBoundingClientRect(),
+      edges,
+    };
+  }, []);
+
+  const startMoveAnnotation = useCallback((e: React.MouseEvent, annotation: Annotation, containerEl: HTMLDivElement) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dragHappenedRef.current = false;
+    movingAnnotationRef.current = {
+      annotationId: annotation.id,
+      startMouseX:  e.clientX,
+      startMouseY:  e.clientY,
+      startFieldX:  annotation.x,
+      startFieldY:  annotation.y,
+      fieldWidth:   annotation.width,
+      fieldHeight:  annotation.height,
+      containerRect: containerEl.getBoundingClientRect(),
+    };
+  }, []);
+
+  const removeAnnotation = useCallback((id: string) => {
+    onAnnotationsChange(annotations.filter(a => a.id !== id));
+  }, [annotations, onAnnotationsChange]);
+
+  const duplicateAnnotation = useCallback((annotation: Annotation) => {
+    const newAnnotation: Annotation = {
+      ...annotation,
+      id: Math.random().toString(36).slice(2),
+      x:  Math.min(annotation.x + 0.02, 1 - annotation.width),
+      y:  Math.min(annotation.y + annotation.height + 0.01, 1 - annotation.height),
+    };
+    onAnnotationsChange([...annotations, newAnnotation]);
+  }, [annotations, onAnnotationsChange]);
+
   const handlePdfClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>, pageIndex: number) => {
       if (dragHappenedRef.current) { dragHappenedRef.current = false; return; }
@@ -262,6 +422,33 @@ export default function FieldPlacer({
       const rect = e.currentTarget.getBoundingClientRect();
       const x    = (e.clientX - rect.left)  / rect.width;
       const y    = (e.clientY - rect.top)   / rect.height;
+
+      if (selectedTool === "annotation") {
+        const size = DEFAULT_SIZES.annotation;
+        // Natural (unzoomed) page width at placement time.
+        // Dividing by zoom gives consistent fontSizeRatio regardless of the
+        // zoom level active when the annotation was placed.
+        const naturalWidth = rect.width / zoom;
+        const newAnnotation: Annotation = {
+          id:            Math.random().toString(36).slice(2),
+          type:          "text",
+          page:          pageIndex,
+          x:             Math.max(0, Math.min(x - size.w / 2, 1 - size.w)),
+          y:             Math.max(0, Math.min(y - size.h / 2, 1 - size.h)),
+          width:         size.w,
+          height:        size.h,
+          content:       "",
+          fontSize:      14,
+          fontSizeRatio: 14 / naturalWidth,
+          bold:          false,
+          color:         "#000000",
+        };
+        onAnnotationsChange([...annotations, newAnnotation]);
+        setEditingAnnotationId(newAnnotation.id);
+        onToolChange(null);
+        return;
+      }
+
       const size = DEFAULT_SIZES[selectedTool] || { w: 0.2, h: 0.06 };
       const newField: Field = {
         id:       Date.now().toString(),
@@ -276,7 +463,7 @@ export default function FieldPlacer({
       };
       onFieldsChange([...fields, newField]);
     },
-    [selectedTool, selectedSignerId, fields, onFieldsChange]
+    [selectedTool, selectedSignerId, fields, annotations, onFieldsChange, onAnnotationsChange, onToolChange, zoom]
   );
 
   const removeField = (id: string) =>
@@ -294,6 +481,8 @@ export default function FieldPlacer({
 
   const toggleRequired = (id: string) =>
     onFieldsChange(fields.map((f) => f.id === id ? { ...f, required: !f.required } : f));
+
+  const isAnnotationTool = selectedTool === "annotation";
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
@@ -359,6 +548,30 @@ export default function FieldPlacer({
             </div>
           )}
 
+          {/* ── Owner annotation tool ── */}
+          <div className="p-4 border-b border-gray-100">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Write on PDF</p>
+            <button
+              onClick={() => onToolChange(isAnnotationTool ? null : "annotation")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer border ${
+                isAnnotationTool
+                  ? "bg-amber-50 border-amber-400 text-amber-700 shadow-sm"
+                  : "bg-white border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-400"
+              }`}
+            >
+              <span className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-amber-100">
+                <Edit3 className="h-3.5 w-3.5 text-amber-600" />
+              </span>
+              Add Text Box
+              {isAnnotationTool && <span className="ml-auto text-amber-500 text-xs">✓</span>}
+            </button>
+            {annotations.length > 0 && (
+              <p className="text-[10px] text-amber-600 mt-2 text-center">
+                {annotations.length} text box{annotations.length !== 1 ? "es" : ""} added
+              </p>
+            )}
+          </div>
+
           {/* ── Signer selector — only shown for multi-signer requests ── */}
           {signers.length > 1 && <div className="p-4 border-b border-gray-100">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Assign To</p>
@@ -393,19 +606,27 @@ export default function FieldPlacer({
           <div className="p-4 border-b border-gray-100">
             {/* Always-visible instruction — adapts when a tool is active */}
             <div className={`flex items-start gap-2 rounded-lg px-3 py-2.5 mb-4 border transition-colors duration-200 ${
-              selectedTool
+              isAnnotationTool
+                ? "bg-amber-50 border-amber-300"
+                : selectedTool
                 ? "bg-indigo-600 border-indigo-700"
                 : "bg-gray-50 border-gray-200"
             }`}>
-              <MousePointer className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${selectedTool ? "text-white/80" : "text-gray-400"}`} />
-              <p className={`text-xs leading-relaxed ${selectedTool ? "text-white" : "text-gray-500"}`}>
-                {selectedTool
+              <MousePointer className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${
+                isAnnotationTool ? "text-amber-500" : selectedTool ? "text-white/80" : "text-gray-400"
+              }`} />
+              <p className={`text-xs leading-relaxed ${
+                isAnnotationTool ? "text-amber-700" : selectedTool ? "text-white" : "text-gray-500"
+              }`}>
+                {isAnnotationTool
+                  ? <><span className="font-semibold">Click the PDF</span> to place a text box</>
+                  : selectedTool
                   ? <><span className="font-semibold">Click the PDF</span> to place a <span className="font-bold underline underline-offset-2">{selectedTool}</span> field</>
                   : <>Select a field type below, then <span className="font-medium text-gray-700">click the PDF</span> to place it</>
                 }
               </p>
             </div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Field Type</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Signer Fields</p>
             <div className="space-y-1">
               {FIELD_TYPES.map((ft) => {
                 const Icon = ft.icon;
@@ -469,7 +690,7 @@ export default function FieldPlacer({
                   draggable={false}
                 />
 
-                {/* ── Placed fields ── */}
+                {/* ── Placed signer fields ── */}
                 {fields
                   .filter((f) => f.page === pageIndex)
                   .map((field) => {
@@ -564,6 +785,126 @@ export default function FieldPlacer({
                               e.stopPropagation();
                               const el = pageEls.current[pageIndex];
                               if (el) startResize(e, field, el, h.edges);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    );
+                  })}
+
+                {/* ── Owner annotation text boxes ── */}
+                {annotations
+                  .filter((a) => a.page === pageIndex)
+                  .map((annotation) => {
+                    const isEditing = editingAnnotationId === annotation.id;
+                    return (
+                      <div
+                        key={annotation.id}
+                        className="absolute select-none"
+                        style={{
+                          left:            `${annotation.x * 100}%`,
+                          top:             `${annotation.y * 100}%`,
+                          width:           `${annotation.width * 100}%`,
+                          height:          `${annotation.height * 100}%`,
+                          border:          "2px dashed #D97706",
+                          backgroundColor: "#FFFBEB",
+                          cursor:          isEditing ? "text" : "grab",
+                          zIndex:          isEditing ? 20 : 5,
+                        }}
+                        onMouseDown={(e) => {
+                          if (isEditing) return;
+                          const el = pageEls.current[pageIndex];
+                          if (el) startMoveAnnotation(e, annotation, el);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isEditing) setEditingAnnotationId(annotation.id);
+                        }}
+                      >
+                        {/* Inline editor or static display */}
+                        {isEditing ? (
+                          <textarea
+                            autoFocus
+                            className="w-full h-full bg-transparent border-0 outline-0 resize-none p-0.5 leading-tight"
+                            style={{
+                              fontSize:   `${scaledFontSize(annotation, pageIndex)}px`,
+                              fontWeight: annotation.bold ? "bold" : "normal",
+                              color:      annotation.color,
+                            }}
+                            value={annotation.content}
+                            onChange={(e) => {
+                              onAnnotationsChange(
+                                annotations.map(a =>
+                                  a.id === annotation.id ? { ...a, content: e.target.value } : a
+                                )
+                              );
+                            }}
+                            onBlur={() => setEditingAnnotationId(null)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span
+                            className="block w-full h-full p-0.5 overflow-hidden leading-tight"
+                            style={{
+                              fontSize:    `${scaledFontSize(annotation, pageIndex)}px`,
+                              fontWeight:  annotation.bold ? "bold" : "normal",
+                              color:       annotation.content ? annotation.color : undefined,
+                            }}
+                          >
+                            {annotation.content || (
+                              <span className="text-amber-400 italic text-xs">Click to type…</span>
+                            )}
+                          </span>
+                        )}
+
+                        {/* Floating toolbar — above the annotation */}
+                        <div
+                          className="absolute flex items-center gap-0.5"
+                          style={{ top: -24, right: 0 }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* Bold toggle */}
+                          <button
+                            onClick={() => onAnnotationsChange(
+                              annotations.map(a => a.id === annotation.id ? { ...a, bold: !a.bold } : a)
+                            )}
+                            className={`w-5 h-5 rounded flex items-center justify-center text-xs font-bold cursor-pointer hover:opacity-80 transition-opacity ${
+                              annotation.bold ? "bg-amber-700 text-white" : "bg-amber-500 text-white"
+                            }`}
+                            title="Toggle bold"
+                          >
+                            B
+                          </button>
+                          {/* Duplicate */}
+                          <button
+                            onClick={() => duplicateAnnotation(annotation)}
+                            className="w-5 h-5 rounded flex items-center justify-center bg-amber-500 text-white cursor-pointer hover:opacity-80 transition-opacity"
+                            title="Duplicate text box"
+                          >
+                            <Copy className="h-2.5 w-2.5" />
+                          </button>
+                          {/* Delete */}
+                          <button
+                            onClick={() => removeAnnotation(annotation.id)}
+                            className="w-5 h-5 rounded flex items-center justify-center bg-amber-500 text-white cursor-pointer hover:opacity-80 transition-opacity font-bold text-sm leading-none"
+                            title="Remove text box"
+                          >
+                            ×
+                          </button>
+                        </div>
+
+                        {/* 8-direction resize handles */}
+                        {RESIZE_HANDLES.map((h) => (
+                          <div
+                            key={h.id}
+                            className="absolute w-2 h-2 rounded-sm border border-amber-400 bg-white z-10"
+                            style={{ ...h.style, cursor: h.cursor }}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              const el = pageEls.current[pageIndex];
+                              if (el) startResizeAnnotation(e, annotation, el, h.edges);
                             }}
                           />
                         ))}

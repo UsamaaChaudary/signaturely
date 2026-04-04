@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const annotationSchema = new mongoose.Schema({
+  id:       { type: String, required: true },
+  type:     { type: String, enum: ['text'], default: 'text' },
+  page:     { type: Number, required: true },
+  x:        { type: Number, required: true },
+  y:        { type: Number, required: true },
+  width:    { type: Number, required: true },
+  height:   { type: Number, required: true },
+  content:       { type: String, default: '' },
+  fontSize:      { type: Number, default: 14 },
+  fontSizeRatio: { type: Number },  // fontSize / naturalPageWidthPx; enables proportional scaling across render contexts
+  bold:          { type: Boolean, default: false },
+  color:         { type: String, default: '#000000' },
+});
+
 const fieldSchema = new mongoose.Schema({
   signerId: { type: String, required: true },
   type: { type: String, enum: ['signature', 'initials', 'date', 'text', 'checkbox'], required: true },
@@ -32,6 +47,7 @@ const signingRequestSchema = new mongoose.Schema({
   message:           { type: String, default: '' },
   signers:           [signerSchema],
   fields:            [fieldSchema],
+  annotations:       { type: [annotationSchema], default: [] },
   status:            { type: String, enum: ['pending', 'in_progress', 'completed', 'cancelled'], default: 'pending' },
   completedFilePath: { type: String },
 }, { timestamps: true });

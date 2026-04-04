@@ -42,6 +42,12 @@ src/
 
 **Auth** — JWT via `Authorization: Bearer <token>`. The `auth` middleware in `middleware/auth.js` is applied per-router, not globally.
 
+**Owner annotations** — Both `Template` and `SigningRequest` carry an `annotations[]` array (separate from `fields[]`). Annotations are static text the document owner writes on the PDF; they have no `signerId` or `value`. `pdfService.js` draws them before signer fields using `hexToRgb()` + `pdf-lib`'s `drawText`. See `docs/PRODUCT_DECISIONS.md` — *Owner Annotations vs Signer Fields*.
+
+**Template edit fix** — `PATCH /api/templates/:id` now includes `'annotations'` in the allowed update fields. The frontend `/send?templateId=X&mode=edit` flow was also fixed to call `updateTemplate` instead of always calling `createTemplate`.
+
+**Signing session response** — `GET /api/signing/:token` now includes `annotations: request.annotations` so the public signing page can render owner text as read-only overlays.
+
 ## Project Docs
 
 Before implementing features or fixing bugs, check the `/docs` folder at the repo root:

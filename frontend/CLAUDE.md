@@ -43,6 +43,10 @@ This is a Next.js 16 (App Router) e-signature SaaS frontend. The backend runs se
 
 **PDF rendering:** `pdfjs-dist` renders PDF pages to `<canvas>` elements client-side. `FieldPlacer.tsx` overlays interactive draggable fields on top.
 
+**Owner annotations** — A second overlay layer (amber, dashed border) sits between the PDF image and the signer fields. Annotations are owned by the document sender, not signers. The `Annotation` interface is exported from `FieldPlacer.tsx` and used across `send/page.tsx`, `sign/[token]/page.tsx`, and `PdfPreviewModal.tsx`. They are always rendered `pointer-events-none` everywhere except the FieldPlacer editor. See `docs/PRODUCT_DECISIONS.md` — *Owner Annotations vs Signer Fields*.
+
+**Annotation color convention** — Amber (`#D97706` border, `#FFFBEB` bg) is reserved exclusively for owner annotations throughout the UI. Do not use amber for signer fields or other UI elements.
+
 **UI:** shadcn/ui (style: base-nova) + Tailwind CSS 4. Path alias `@/` maps to the repo root.
 
 **Form handling:** No form library. Inline `onChange` → `setState` pattern throughout.
@@ -82,6 +86,31 @@ All colors are defined as CSS custom properties in `app/globals.css` and consume
 `app/page.tsx` hero has an inline email + "Start Free" form.
 On submit it routes to `/login?email=<value>`.
 `app/login/page.tsx` reads the `?email` param via `useSearchParams`, auto-switches to the **Register** tab, and pre-fills the email field. The inner component is wrapped in `<Suspense>` (required by Next.js for `useSearchParams` in App Router).
+
+## Key Components
+
+### `FieldPlacer.tsx`
+Interactive PDF editor for placing both signer fields and owner annotations.
+- **Exports:** `Field`, `Annotation`, `Signer` interfaces; `FIELD_TYPES`, `SIGNER_COLORS` constants
+- **Props:** `fields`/`onFieldsChange` (signer fields) + `annotations`/`onAnnotationsChange` (owner text)
+- **Tools:** 5 signer field types + `"annotation"` tool (places owner text boxes)
+- **Drag/resize:** Two sets of refs — `movingRef`/`resizingRef` for signer fields, `movingAnnotationRef`/`resizingAnnotationRef` for annotations; both handled in a single global `useEffect` mouse handler
+- **Inline editing:** `editingAnnotationId` state opens a `<textarea autoFocus>` on the placed annotation; `onBlur` closes it
+
+### `PdfPreviewModal.tsx`
+Read-only PDF viewer modal used on dashboard, templates, and documents pages.
+- **Exports:** `PreviewField`, `PreviewAnnotation` interfaces
+- **Props:** `previewFields?` (signer field overlays) + `previewAnnotations?` (annotation overlays)
+- Annotations render below field overlays, both `pointer-events-none`
+
+### `send/page.tsx`
+Multi-step flow: document → fields → signers & send. Also handles template creation and editing.
+- `annotations` state mirrors `fields` state; both are passed to `FieldPlacer` and included in all API calls
+- Template edit (`mode=edit`) loads both fields and annotations from the existing template
+- Bug fixed: template edit now calls `updateTemplate` instead of always calling `createTemplate`
+
+### `sign/[token]/page.tsx`
+Public signing page (no auth). Renders annotation overlays (`pointer-events-none`) then interactive signer field overlays on top.
 
 ## Known Issues
 

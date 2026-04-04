@@ -50,6 +50,7 @@ router.get('/:token', async (req, res) => {
         fileUrl: request.documentId.filePath, // Cloudinary HTTPS URL
       },
       fields: signerFields,
+      annotations: request.annotations || [],
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

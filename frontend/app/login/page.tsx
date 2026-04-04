@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { FileSignature } from "lucide-react";
 
 function LoginPageInner() {
   const router = useRouter();
@@ -73,9 +72,7 @@ function LoginPageInner() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--primary)" }}>
-            <FileSignature className="h-5 w-5 text-white" />
-          </div>
+          <img src="/icon.svg" width={36} height={36} alt="Signo" />
           <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Signo</h1>
         </div>
 

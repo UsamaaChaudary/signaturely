@@ -63,6 +63,7 @@ interface Request {
   documentId?: { originalName: string; filePath?: string; pageCount?: number };
   signers?: Signer[];
   fields?: RequestField[];
+  annotations?: Array<{ id: string; type: "text"; page: number; x: number; y: number; width: number; height: number; content: string; fontSize: number; bold: boolean; color: string }>;
 }
 
 // One display row = one signer within a request
@@ -372,6 +373,7 @@ export default function Dashboard() {
             pageCount={previewReq.documentId?.pageCount ?? 1}
             onClose={() => setPreviewReq(null)}
             previewFields={previewFields}
+            previewAnnotations={previewReq.status === "completed" ? [] : (previewReq.annotations ?? [])}
           />
         );
       })()}

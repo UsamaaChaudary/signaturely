@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileText, X, ExternalLink, ZoomIn, ZoomOut, Edit2 } from "lucide-react";
 
 // NOTE: Download button is temporarily disabled.
@@ -25,6 +25,21 @@ export interface PreviewField {
   signerSlot?: string; // "1", "2", … maps to signer color index
 }
 
+export interface PreviewAnnotation {
+  id?: string;
+  type: "text";
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string;
+  fontSize: number;
+  fontSizeRatio?: number;
+  bold: boolean;
+  color: string;
+}
+
 interface Props {
   fileName: string;
   filePath: string;
@@ -37,6 +52,8 @@ interface Props {
    * can see the placed fields without entering the editor.
    */
   previewFields?: PreviewField[];
+  /** When provided, owner text annotations are rendered as read-only overlays. */
+  previewAnnotations?: PreviewAnnotation[];
 }
 
 /**
@@ -58,11 +75,25 @@ export default function PdfPreviewModal({
   onClose,
   editHref,
   previewFields,
+  previewAnnotations,
 }: Props) {
   const [pages,   setPages]   = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(false);
   const [zoom,    setZoom]    = useState(100);
+
+  // Measure the rendered page width so annotation fontSizeRatio can be
+  // converted back to px proportionally, matching the sign-page rendering.
+  const firstPageRef   = useRef<HTMLDivElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  useEffect(() => {
+    const el = firstPageRef.current;
+    if (!el) return;
+    setContainerWidth(el.offsetWidth);
+    const obs = new ResizeObserver(([entry]) => setContainerWidth(entry.contentRect.width));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [pages]);
 
   // Render PDF pages via pdfjs-dist (avoids iframe/download issues)
   useEffect(() => {
@@ -130,6 +161,9 @@ export default function PdfPreviewModal({
                 {previewFields && previewFields.length > 0 && (
                   <span className="ml-1 sm:ml-2 text-indigo-500">· {previewFields.length} field{previewFields.length !== 1 ? "s" : ""}</span>
                 )}
+                {previewAnnotations && previewAnnotations.length > 0 && (
+                  <span className="ml-1 sm:ml-2 text-amber-500">· {previewAnnotations.length} text box{previewAnnotations.length !== 1 ? "es" : ""}</span>
+                )}
               </p>
             </div>
           </div>
@@ -190,20 +224,47 @@ export default function PdfPreviewModal({
           ) : (
             <div className="py-3 sm:py-6 flex flex-col items-center gap-3 sm:gap-4" style={{ zoom: zoom / 100 }}>
               {pages.map((src, pageIndex) => {
-                const pageFields = previewFields?.filter((f) => f.page === pageIndex) ?? [];
+                const pageFields       = previewFields?.filter((f) => f.page === pageIndex) ?? [];
+                const pageAnnotations  = previewAnnotations?.filter((a) => a.page === pageIndex) ?? [];
                 return (
                   <div
                     key={pageIndex}
+                    ref={pageIndex === 0 ? firstPageRef : null}
                     className="relative shadow-lg rounded overflow-hidden bg-white"
-                    style={{ width: "95vw", maxWidth: 760 }}
+                    style={{ width: "95vw", maxWidth: 864 }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={src}
                       alt={`Page ${pageIndex + 1}`}
-                      style={{ width: "100%", maxWidth: 760, height: "auto", display: "block" }}
+                      style={{ width: "100%", height: "auto", display: "block" }}
                       draggable={false}
                     />
+
+                    {/* Annotation overlays — read-only owner text */}
+                    {pageAnnotations.map((annotation, ai) => (
+                      <div
+                        key={ai}
+                        className="absolute pointer-events-none overflow-hidden"
+                        style={{
+                          left:   `${annotation.x * 100}%`,
+                          top:    `${annotation.y * 100}%`,
+                          width:  `${annotation.width * 100}%`,
+                          height: `${annotation.height * 100}%`,
+                        }}
+                      >
+                        <span
+                          className="block w-full h-full p-0.5 leading-tight overflow-hidden"
+                          style={{
+                            fontSize:   `${annotation.fontSizeRatio && containerWidth ? annotation.fontSizeRatio * containerWidth : annotation.fontSize}px`,
+                            fontWeight: annotation.bold ? "bold" : "normal",
+                            color:      annotation.color || "#000000",
+                          }}
+                        >
+                          {annotation.content}
+                        </span>
+                      </div>
+                    ))}
 
                     {/* Field overlays — read-only, non-interactive */}
                     {pageFields.map((field, fi) => {

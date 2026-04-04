@@ -3,7 +3,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  FileSignature,
   LogOut,
   LayoutDashboard,
   FileText,
@@ -54,9 +53,7 @@ export default function NavBar() {
           href="/dashboard"
           className="flex items-center gap-2 flex-shrink-0 group cursor-pointer"
         >
-          <div className="w-[34px] h-[34px] rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-sm transition-all group-hover:opacity-90">
-            <FileSignature className="h-[17px] w-[17px] text-white" />
-          </div>
+          <img src="/icon.svg" width={34} height={34} alt="Signo" className="shadow-sm transition-all group-hover:opacity-90" />
           <span className="font-extrabold text-[16px] tracking-tight hidden sm:block" style={{ color: "var(--foreground)" }}>
             Signo
           </span>

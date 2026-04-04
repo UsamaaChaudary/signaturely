@@ -17,6 +17,7 @@ interface Template {
   signerCount: number;
   usageCount: number;
   fields: PreviewField[];
+  annotations?: Array<{ id: string; type: "text"; page: number; x: number; y: number; width: number; height: number; content: string; fontSize: number; bold: boolean; color: string }>;
   documentId?: { _id: string; originalName: string; pageCount: number; filePath?: string };
   createdAt: string;
 }
@@ -160,6 +161,7 @@ export default function TemplatesPage() {
           pageCount={previewTmpl.documentId.pageCount}
           editHref={`/send?templateId=${previewTmpl._id}&mode=edit`}
           previewFields={previewTmpl.fields}
+          previewAnnotations={previewTmpl.annotations ?? []}
           onClose={() => setPreviewTmpl(null)}
         />
       )}

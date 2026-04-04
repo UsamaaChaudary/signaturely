@@ -7,7 +7,7 @@ const router = express.Router();
 // POST /api/templates — create
 router.post('/', auth, async (req, res) => {
   try {
-    const { documentId, name, description, fields, signerCount } = req.body;
+    const { documentId, name, description, fields, signerCount, annotations } = req.body;
     if (!documentId || !name || !signerCount) {
       return res.status(400).json({ error: 'documentId, name, and signerCount are required' });
     }
@@ -22,6 +22,7 @@ router.post('/', auth, async (req, res) => {
       description: description || '',
       signerCount,
       fields: fields || [],
+      annotations: annotations || [],
     });
 
     // Mark document as used in a template
@@ -62,7 +63,7 @@ router.get('/:id', auth, async (req, res) => {
 // PATCH /api/templates/:id — update
 router.patch('/:id', auth, async (req, res) => {
   try {
-    const allowed = ['name', 'description', 'fields', 'signerCount'];
+    const allowed = ['name', 'description', 'fields', 'signerCount', 'annotations'];
     const updates = {};
     for (const key of allowed) {
       if (req.body[key] !== undefined) updates[key] = req.body[key];

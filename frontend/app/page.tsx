@@ -91,9 +91,7 @@ function NavBar() {
       <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: C.primary }}>
-            <FileSignature className="h-4 w-4 text-white" />
-          </div>
+          <img src="/icon.svg" width={32} height={32} alt="Signo" />
           <span className="font-bold text-lg" style={{ color: C.dark }}>Signo</span>
         </Link>
 

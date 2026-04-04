@@ -2,6 +2,14 @@ const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const axios = require('axios');
 const cloudinary = require('../utils/cloudinary');
 
+function hexToRgb(hex) {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.slice(0, 2), 16) / 255;
+  const g = parseInt(clean.slice(2, 4), 16) / 255;
+  const b = parseInt(clean.slice(4, 6), 16) / 255;
+  return rgb(r, g, b);
+}
+
 async function mergeSignatures(request) {
   const doc = request.documentId;
   // Fetch original PDF from Cloudinary (filePath is now an HTTPS URL)
@@ -9,6 +17,34 @@ async function mergeSignatures(request) {
   const pdfDoc = await PDFDocument.load(Buffer.from(fetchResponse.data));
   const pages = pdfDoc.getPages();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  // ── Draw owner annotations (static text baked in before signer fields) ──
+  if (request.annotations && request.annotations.length > 0) {
+    const hasBold = request.annotations.some(a => a.bold);
+    const boldFont = hasBold ? await pdfDoc.embedFont(StandardFonts.HelveticaBold) : null;
+
+    for (const annotation of request.annotations) {
+      if (!annotation.content || annotation.type !== 'text') continue;
+      const page = pages[annotation.page];
+      if (!page) continue;
+
+      const { width: pw, height: ph } = page.getSize();
+      const x  = annotation.x * pw;
+      const y  = ph - (annotation.y * ph) - (annotation.height * ph);
+      const w  = annotation.width * pw;
+      const h  = annotation.height * ph;
+      const fs = annotation.fontSize || 14;
+
+      page.drawText(annotation.content, {
+        x: x + 2,
+        y: y + (h / 2) - (fs / 2),
+        size: fs,
+        font: (annotation.bold && boldFont) ? boldFont : font,
+        color: annotation.color ? hexToRgb(annotation.color) : rgb(0, 0, 0),
+        maxWidth: w - 4,
+      });
+    }
+  }
 
   for (const field of request.fields) {
     if (!field.value) continue;

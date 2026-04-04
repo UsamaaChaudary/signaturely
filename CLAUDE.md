@@ -33,8 +33,8 @@ Frontend dev server defaults to port 3000; backend runs on port 4000. No orchest
 **Signaturely** is an electronic signature SaaS. The high-level request flow:
 
 1. **Upload** — Owner uploads a PDF; backend stores it in Cloudinary (`signaturely/originals/`).
-2. **Field placement** — Frontend renders the PDF via `pdfjs-dist` on `<canvas>`. `FieldPlacer.tsx` lets the owner drag signature/text/checkbox fields onto pages. Field positions are stored as percentage-based coordinates (0–1 range).
-3. **Send** — Backend creates a `SigningRequest` document. Each signer gets a unique UUID token for their signing session.
+2. **Field placement** — Frontend renders the PDF via `pdfjs-dist` on `<canvas>`. `FieldPlacer.tsx` lets the owner drag signature/text/checkbox fields onto pages, and add static text annotations (owner-written text baked into the final PDF). Field and annotation positions are stored as percentage-based coordinates (0–1 range).
+3. **Send** — Backend creates a `SigningRequest` document. Each signer gets a unique UUID token for their signing session. Annotations are copied from the template into the request at creation time.
 4. **Signing** — Signers follow an email link to `/sign/:token` (no auth). They fill fields and submit.
 5. **Completion** — When all signers complete, `pdfService.js` uses `pdf-lib` to merge signatures into the PDF, uploads the result to Cloudinary (`signaturely/completed/`), and emails the signed PDF to all parties via Resend.
 
@@ -44,7 +44,8 @@ Frontend dev server defaults to port 3000; backend runs on port 4000. No orchest
 |---------|--------|
 | Auth | JWT in `Authorization: Bearer` header. Token stored in `localStorage` client-side. 30-day expiry. |
 | File storage | `Document.filePath` is always a full Cloudinary HTTPS URL — never a local path. |
-| Field coordinates | `x`, `y`, `width`, `height` are fractions (0.0–1.0) of page dimensions. `pdf-lib` converts these to PDF points with Y-axis flip. |
+| Field coordinates | `x`, `y`, `width`, `height` are fractions (0.0–1.0) of page dimensions. `pdf-lib` converts these to PDF points with Y-axis flip. Same coordinate system is used for annotations. |
+| Annotations | Owner-written static text; stored in `annotations[]` (separate from `fields[]`). No `signerId` or `value`. Drawn by `pdfService.js` before signer fields. Rendered read-only on signing page and all preview modals. |
 | Signer identification | Each signer's unique `signingToken` (UUID) is the only credential for the public `/api/signing/:token` endpoint. |
 | Soft deletes | `status` field (not hard deletes) on Document, Contact, SigningRequest, Template. |
 
@@ -52,8 +53,8 @@ Frontend dev server defaults to port 3000; backend runs on port 4000. No orchest
 
 - **User** — credentials; owns Documents, Contacts, Templates, SigningRequests
 - **Document** — uploaded PDF metadata + Cloudinary URL; can be flagged `isTemplate`
-- **SigningRequest** — signing workflow; embeds `signers[]` (with per-signer tokens and status) and `fields[]`
-- **Template** — reusable field layout; `fields[].signerSlot` is a 1-indexed string mapping to a signer position
+- **SigningRequest** — signing workflow; embeds `signers[]` (with per-signer tokens and status), `fields[]`, and `annotations[]`
+- **Template** — reusable field layout; `fields[].signerSlot` is a 1-indexed string mapping to a signer position; also carries `annotations[]`
 - **Contact** — address book entry; tracks `totalSent`/`totalCompleted` stats updated via `utils/contactStats.js`
 
 ## Environment Setup

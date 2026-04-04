@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState, useRef } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,12 +48,28 @@ interface SigningField {
   required: boolean;
 }
 
+interface SigningAnnotation {
+  id: string;
+  type: "text";
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: string;
+  fontSize: number;
+  fontSizeRatio?: number;
+  bold: boolean;
+  color: string;
+}
+
 interface SigningSession {
   title: string;
   message?: string;
   signer: { name: string; email: string };
   document: { fileUrl: string };
   fields: SigningField[];
+  annotations: SigningAnnotation[];
 }
 
 // ---- Signature canvas component ----
@@ -189,6 +205,18 @@ export default function SignPage({
   const [sigTab, setSigTab] = useState("draw");
   const [textInputOpen, setTextInputOpen] = useState(false);
   const [textInputValue, setTextInputValue] = useState("");
+
+  // Measure rendered PDF page width so annotation fontSizeRatio → px is consistent.
+  const firstPdfPageRef = useRef<HTMLDivElement | null>(null);
+  const [pdfContainerWidth, setPdfContainerWidth] = useState(0);
+  useEffect(() => {
+    const el = firstPdfPageRef.current;
+    if (!el) return;
+    setPdfContainerWidth(el.offsetWidth);
+    const obs = new ResizeObserver(([entry]) => setPdfContainerWidth(entry.contentRect.width));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [pdfPages]);
 
   useEffect(() => {
     loadSession();
@@ -476,6 +504,7 @@ export default function SignPage({
           {pdfPages.map((canvas, pageIndex) => (
             <div
               key={pageIndex}
+              ref={pageIndex === 0 ? firstPdfPageRef : null}
               className="relative bg-white shadow-md inline-block w-full"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -485,6 +514,33 @@ export default function SignPage({
                 className="block w-full"
                 draggable={false}
               />
+
+              {/* ── Owner annotation overlays (read-only) ── */}
+              {session?.annotations
+                ?.filter((a) => a.page === pageIndex)
+                .map((annotation) => (
+                  <div
+                    key={annotation.id}
+                    className="absolute pointer-events-none overflow-hidden"
+                    style={{
+                      left:   `${annotation.x * 100}%`,
+                      top:    `${annotation.y * 100}%`,
+                      width:  `${annotation.width * 100}%`,
+                      height: `${annotation.height * 100}%`,
+                    }}
+                  >
+                    <span
+                      className="block w-full h-full p-0.5 leading-tight overflow-hidden"
+                      style={{
+                        fontSize:   `${annotation.fontSizeRatio && pdfContainerWidth ? annotation.fontSizeRatio * pdfContainerWidth : annotation.fontSize}px`,
+                        fontWeight: annotation.bold ? "bold" : "normal",
+                        color:      annotation.color || "#000000",
+                      }}
+                    >
+                      {annotation.content}
+                    </span>
+                  </div>
+                ))}
 
               {session?.fields
                 ?.filter((f) => f.page === pageIndex)
