@@ -46,7 +46,7 @@ export default function RequestRow({ request, compact = false, onRemind, onCance
 
   return (
     <div
-      className={`flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${compact ? "text-sm" : ""}`}
+      className={`flex items-center gap-2 sm:gap-4 p-2 sm:p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${compact ? "text-xs sm:text-sm" : "text-sm"}`}
       onClick={() => router.push(`/requests/${request._id}`)}
     >
       <div className="flex-1 min-w-0">
@@ -54,27 +54,27 @@ export default function RequestRow({ request, compact = false, onRemind, onCance
         {!compact && request.documentId && (
           <p className="text-xs text-gray-500 truncate mt-0.5">{request.documentId.originalName}</p>
         )}
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">
           {new Date(request.createdAt).toLocaleDateString()} · {signed}/{total} signed
         </p>
       </div>
       <StatusBadge status={request.status} />
-      <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <Link href={`/requests/${request._id}`}>
-          <Button variant="ghost" size="icon-sm" title="View details">
-            <Eye className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8" title="View details">
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </Link>
         {request.status === "completed" && request.completedFilePath && (
           <>
             <a href={getCompletedFileUrl(request.completedFilePath)} target="_blank" rel="noopener noreferrer">
-              <Button variant="ghost" size="icon-sm" title="View signed PDF">
-                <ExternalLink className="h-4 w-4 text-indigo-500" />
+              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8" title="View signed PDF">
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-500" />
               </Button>
             </a>
             <a href={getCompletedFileUrl(request.completedFilePath)} download target="_blank" rel="noopener noreferrer">
-              <Button variant="ghost" size="icon-sm" title="Download">
-                <Download className="h-4 w-4 text-green-600" />
+              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8" title="Download">
+                <Download className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
               </Button>
             </a>
           </>
@@ -82,18 +82,18 @@ export default function RequestRow({ request, compact = false, onRemind, onCance
         {(request.status === "pending" || request.status === "in_progress") && (
           <>
             {pendingSigners.length > 0 && (
-              <Button variant="ghost" size="icon-sm" title="Copy signing link" onClick={copySigningLink}>
-                <Link2 className="h-4 w-4 text-indigo-500" />
+              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8" title="Copy signing link" onClick={copySigningLink}>
+                <Link2 className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-500" />
               </Button>
             )}
             {onRemind && (
-              <Button variant="ghost" size="icon-sm" title="Remind" onClick={() => onRemind(request._id)}>
-                <Bell className="h-4 w-4 text-yellow-500" />
+              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8" title="Remind" onClick={() => onRemind(request._id)}>
+                <Bell className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
               </Button>
             )}
             {onCancel && (
-              <Button variant="ghost" size="icon-sm" title="Cancel" onClick={() => onCancel(request._id)}>
-                <X className="h-4 w-4 text-red-400" />
+              <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8" title="Cancel" onClick={() => onCancel(request._id)}>
+                <X className="h-3 w-3 sm:h-4 sm:w-4 text-red-400" />
               </Button>
             )}
           </>

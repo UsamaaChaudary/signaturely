@@ -159,42 +159,43 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Dashboard</h1>
+      <main className="max-w-6xl mx-auto px-2 sm:px-3 md:px-6 py-4 sm:py-6 md:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: "var(--foreground)" }}>Dashboard</h1>
           <Link
             href="/send"
-            className={buttonVariants({ className: "bg-[var(--primary)] hover:opacity-90" })}
+            className={buttonVariants({ className: "bg-[var(--primary)] hover:opacity-90 w-full sm:w-auto text-sm py-1.5 sm:py-2" })}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Send Document
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="sm:hidden">Send</span>
+            <span className="hidden sm:inline">Send Document</span>
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-500 mt-1">Total Recipients</div>
+            <CardContent className="pt-3 sm:pt-4 md:pt-6">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{stats.total}</div>
+              <div className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Total Recipients</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-              <div className="text-sm text-gray-500 mt-1">Awaiting Signature</div>
+            <CardContent className="pt-3 sm:pt-4 md:pt-6">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600">{stats.pending}</div>
+              <div className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Awaiting Signature</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-              <div className="text-sm text-gray-500 mt-1">Signed</div>
+            <CardContent className="pt-3 sm:pt-4 md:pt-6">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">{stats.completed}</div>
+              <div className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Signed</div>
             </CardContent>
           </Card>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Signing Requests</CardTitle>
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base">Signing Requests</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -226,18 +227,18 @@ export default function Dashboard() {
                   return (
                     <div
                       key={`${req._id}-${signer._id}`}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                       onClick={() => router.push(`/requests/${req._id}`)}
                     >
                       {/* Left: avatar + info */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${avatarColor}`}>
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className={`w-7 h-7 sm:w-8 sm:w-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 ${avatarColor}`}>
                           {(signer.name || signer.email).charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-medium text-gray-900 truncate">{signer.name}</div>
+                          <div className="font-medium text-gray-900 text-sm sm:text-base">{signer.name}</div>
                           <div className="text-xs text-gray-400 truncate">{signer.email}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">
+                          <div className="text-xs text-gray-400 mt-0.5 hidden sm:block">
                             {req.title} &bull; {req.documentId?.originalName} &bull;{" "}
                             {new Date(req.createdAt).toLocaleDateString()}
                           </div>
@@ -245,19 +246,20 @@ export default function Dashboard() {
                       </div>
 
                       {/* Right: status + actions */}
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-4" onClick={(e) => e.stopPropagation()}>
-                        <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${cfg.color}`}>
-                          <Icon className="h-3 w-3" />
-                          {cfg.label}
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-auto sm:ml-4" onClick={(e) => e.stopPropagation()}>
+                        <span className={`flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium ${cfg.color}`}>
+                          <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <span className="hidden sm:inline">{cfg.label}</span>
                         </span>
 
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-7 w-7 sm:h-8 sm:w-8"
                           title="Preview document"
                           onClick={() => setPreviewReq(req)}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
 
                         {/* Copy link */}
@@ -265,10 +267,10 @@ export default function Dashboard() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-8"
                             onClick={() => copySignerLink(req, signer)}
-                            className="text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50"
                           >
-                            <Link2 className="h-4 w-4" />
+                            <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex items-center whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs text-white shadow-md z-50">
                             {req.status === "completed" ? "Copy document link" : "Copy signing link"}
@@ -284,7 +286,7 @@ export default function Dashboard() {
                             className={buttonVariants({ variant: "ghost", size: "sm" })}
                             title="Download signed PDF"
                           >
-                            <Download className="h-4 w-4" />
+                            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                           </a>
                         )}
 
@@ -293,19 +295,20 @@ export default function Dashboard() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="h-7 w-7 sm:h-8 sm:w-8"
                               title="Send reminder"
                               onClick={() => handleRemind(req._id)}
                             >
-                              <Bell className="h-4 w-4" />
+                              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="h-7 w-7 sm:h-8 sm:w-8 text-red-400 hover:text-red-600"
                               title="Cancel request"
                               onClick={() => handleCancel(req._id)}
-                              className="text-red-400 hover:text-red-600"
                             >
-                              <XCircle className="h-4 w-4" />
+                              <XCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </>
                         )}

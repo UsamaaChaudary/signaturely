@@ -32,7 +32,7 @@ export default function StatusBadge({ status, variant = "request", className = "
   const colorMap = variant === "signer" ? signerColors : requestColors;
   const color = colorMap[status] ?? "bg-gray-100 text-gray-600";
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color} ${className}`}>
+    <span className={`inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${color} ${className}`}>
       {labels[status] ?? status}
     </span>
   );

@@ -214,21 +214,24 @@ function SendPageInner() {
 
   // Step indicator (shared between layouts)
   const stepIndicator = (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
       {steps.map((s, i) => (
-        <div key={s} className="flex items-center gap-2">
+        <div key={s} className="flex items-center gap-1 sm:gap-2">
           <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold ${
               currentIdx > i ? "bg-green-500 text-white" : step === s ? "bg-[var(--primary)] text-white" : "bg-[var(--muted)]"
             }`}
             style={step === s ? { color: "var(--primary-foreground)" } : {}}
           >
             {currentIdx > i ? <Check className="h-3 w-3" /> : i + 1}
           </div>
-          <span className={step === s ? "font-medium" : currentIdx > i ? "text-green-600" : ""} style={step === s ? { color: "var(--primary)" } : currentIdx > i ? { color: "#22c55e" } : { color: "var(--muted-foreground)" }}>
+          <span className={`hidden sm:inline ${step === s ? "font-medium" : currentIdx > i ? "text-green-600" : ""}`} style={step === s ? { color: "var(--primary)" } : currentIdx > i ? { color: "#22c55e" } : { color: "var(--muted-foreground)" }}>
             {stepLabels[i]}
           </span>
-          {i < steps.length - 1 && <span className="mx-1" style={{ color: "var(--border)" }}>›</span>}
+          <span className={`sm:hidden ${step === s ? "font-medium" : currentIdx > i ? "text-green-600" : ""}`} style={step === s ? { color: "var(--primary)" } : currentIdx > i ? { color: "#22c55e" } : { color: "var(--muted-foreground)" }}>
+            {stepLabels[i].slice(0, 3)}
+          </span>
+          {i < steps.length - 1 && <span className="mx-0.5 sm:mx-1" style={{ color: "var(--border)" }}>›</span>}
         </div>
       ))}
     </div>
@@ -242,7 +245,7 @@ function SendPageInner() {
 
         {/* Pinned header bar */}
         <div className="flex-shrink-0 bg-[var(--card)] border-b border-[var(--border)] shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-2 sm:gap-3">
 
             {/* Left: back + divider + icon + title */}
             <Button
@@ -252,49 +255,50 @@ function SendPageInner() {
               className="flex-shrink-0"
               style={{ color: "var(--muted-foreground)" }}
             >
-              <ArrowLeft className="h-4 w-4 mr-1" /> Back
+              <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span>
             </Button>
 
-            <div className="h-5 w-px bg-[var(--border)] flex-shrink-0" />
+            <div className="h-5 w-px bg-[var(--border)] flex-shrink-0 hidden sm:block" />
 
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center flex-shrink-0 shadow-sm">
                 {isTemplateMode
-                  ? <Layers className="h-4 w-4 text-white" />
-                  : <Send className="h-4 w-4 text-white" />
+                  ? <Layers className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                  : <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                 }
               </div>
               <div className="min-w-0">
-                <h1 className="text-sm font-bold text-gray-900 leading-tight">
+                <h1 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight">
                   {isTemplateMode ? "Create Template" : "Place Signature Fields"}
                 </h1>
-                <p className="text-xs text-gray-400 truncate">{document.originalName}</p>
+                <p className="text-xs text-gray-400 truncate hidden sm:block">{document.originalName}</p>
               </div>
             </div>
 
             {/* Center: step indicator */}
-            <div className="flex-shrink-0">{stepIndicator}</div>
+            <div className="flex-shrink-0 hidden sm:block">{stepIndicator}</div>
 
-            <div className="h-5 w-px bg-gray-200 flex-shrink-0" />
+            <div className="h-5 w-px bg-gray-200 flex-shrink-0 hidden sm:block" />
 
             {/* Right: fields count + primary CTA */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               {fields.length > 0 && (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1.5">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
                   <FileText className="h-3 w-3" />
-                  {fields.length} field{fields.length !== 1 ? "s" : ""} placed
+                  <span className="hidden sm:inline">{fields.length} field{fields.length !== 1 ? "s" : ""} placed</span>
+                  <span className="sm:hidden">{fields.length}</span>
                 </span>
               )}
               <Button
-                className="group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-md hover:shadow-lg px-6 gap-2 cursor-pointer transition-all duration-200"
+                className="group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-md hover:shadow-lg px-3 sm:px-6 gap-1 sm:gap-2 cursor-pointer transition-all duration-200 text-xs sm:text-sm"
                 onClick={isTemplateMode
                   ? () => { if (!tmplName.trim()) { toast.error("Template name is required"); return; } handleSaveTemplate(tmplName); }
                   : () => setStep("signers")
                 }
                 disabled={isTemplateMode && savingTemplate}
               >
-                {isTemplateMode ? (savingTemplate ? "Saving..." : "Save Template") : "Next Step"}
-                <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                {isTemplateMode ? (savingTemplate ? "Saving..." : "Save") : "Next"}
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
             </div>
 
@@ -347,21 +351,24 @@ function SendPageInner() {
   return (
     <PageLayout>
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          <ArrowLeft className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Back</span>
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">
             {isTemplateMode ? (
-              <><Layers className="h-5 w-5 inline mr-2 text-indigo-600" />Create Template</>
-            ) : "Send Document for Signature"}
+              <><Layers className="h-5 w-5 inline mr-2 text-indigo-600" /><span className="hidden sm:inline">Create Template</span><span className="sm:hidden">Template</span></>
+            ) : <span className="hidden sm:inline">Send Document for Signature</span>}
           </h1>
+          {!isTemplateMode && (
+            <p className="text-sm sm:hidden text-gray-500">Send Document</p>
+          )}
         </div>
       </div>
 
       {/* Step indicator */}
-      <div className="mb-6">{stepIndicator}</div>
+      <div className="mb-4 sm:mb-6 overflow-x-auto">{stepIndicator}</div>
 
       {/* Step 1: Document */}
       {step === "document" && (
@@ -370,7 +377,7 @@ function SendPageInner() {
 
       {/* Step 3: Signers & Send */}
       {step === "signers" && (
-        <div className="max-w-xl mx-auto space-y-6">
+        <div className="max-w-xl mx-auto space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <Label>Document Title</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Consent Form" />
@@ -394,7 +401,7 @@ function SendPageInner() {
                 return (
                   <div key={s.id} className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: SIGNER_COLORS[i] }} />
-                    Signer {i + 1}: {count} field{count !== 1 ? "s" : ""}
+                    <span className="truncate">Signer {i + 1}: {count} field{count !== 1 ? "s" : ""}</span>
                   </div>
                 );
               })}
@@ -406,9 +413,9 @@ function SendPageInner() {
             <ContactSearchInput signers={signers} onChange={setSigners} allowManual />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <Button variant="outline" className="flex-1" onClick={() => setStep("fields")}>
-              Back to Fields
+              <ChevronRight className="h-4 w-4 rotate-180 mr-2" /> <span className="sm:hidden">Fields</span><span className="hidden sm:inline">Back to Fields</span>
             </Button>
             <Button
               className="flex-1 bg-[var(--primary)] hover:opacity-90"
@@ -416,7 +423,7 @@ function SendPageInner() {
               disabled={sending}
             >
               {sending ? "Sending..." : (
-                <><Send className="h-4 w-4 mr-2" />Send for Signature</>
+                <><Send className="h-4 w-4 mr-2" /><span className="sm:hidden">Send</span><span className="hidden sm:inline">Send for Signature</span></>
               )}
             </Button>
           </div>

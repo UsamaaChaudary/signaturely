@@ -150,16 +150,16 @@ export default function RequestDetailPage({
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-4 mb-6">
+      <main className="max-w-4xl mx-auto px-3 md:px-6 py-6 md:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
           <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            <ArrowLeft className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Back</span>
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 flex-1">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 flex-1 order-first sm:order-none">
             {request.title}
           </h1>
           <span
-            className={`text-sm px-3 py-1 rounded-full font-medium capitalize ${
+            className={`text-sm px-3 py-1 rounded-full font-medium capitalize self-start sm:self-center ${
               requestStatusColors[request.status] ||
               "bg-gray-100 text-gray-800"
             }`}
@@ -191,8 +191,8 @@ export default function RequestDetailPage({
           );
         })()}
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="lg:col-span-2 space-y-4 lg:space-y-6">
             {/* Signers */}
             <Card>
               <CardHeader className="pb-3">
@@ -389,7 +389,7 @@ export default function RequestDetailPage({
                 <CardTitle>Details</CardTitle>
               </CardHeader>
               <CardContent className="text-sm space-y-2 text-gray-600">
-                <div>
+                <div className="truncate">
                   <span className="font-medium">Document:</span>{" "}
                   {request.documentId?.originalName}
                 </div>
@@ -398,7 +398,7 @@ export default function RequestDetailPage({
                   {new Date(request.createdAt).toLocaleDateString()}
                 </div>
                 {request.message && (
-                  <div>
+                  <div className="hidden sm:block">
                     <span className="font-medium">Message:</span>{" "}
                     {request.message}
                   </div>

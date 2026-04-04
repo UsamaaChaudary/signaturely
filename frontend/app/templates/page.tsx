@@ -46,20 +46,22 @@ export default function TemplatesPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-2 sm:px-3 md:px-6 py-4 sm:py-6 md:py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Templates</h1>
-          <Button className="bg-[var(--primary)] hover:opacity-90" onClick={() => router.push("/documents")}>
-            <Plus className="h-4 w-4 mr-2" /> Create Template
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: "var(--foreground)" }}>Templates</h1>
+          <Button className="bg-[var(--primary)] hover:opacity-90 w-full sm:w-auto text-sm py-1.5" onClick={() => router.push("/documents")}>
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="sm:hidden">Create</span>
+            <span className="hidden sm:inline">Create Template</span>
           </Button>
         </div>
 
         {/* Templates Card */}
         <Card>
-          <CardHeader>
-            <CardTitle>Saved Templates ({templates.length})</CardTitle>
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base">Saved Templates ({templates.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -76,23 +78,23 @@ export default function TemplatesPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 {templates.map((t) => (
                   <div
                     key={t._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => setPreviewTmpl(t)}
                   >
                     {/* Left: icon + info */}
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-5 w-5 text-purple-600" />
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="w-7 h-7 sm:w-8 sm:h-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium text-gray-900">{t.name}</div>
-                        <div className="text-sm text-gray-500 mt-0.5">
+                        <div className="font-medium text-gray-900 text-sm">{t.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
                           {t.documentId?.originalName && (
-                            <span className="truncate">{t.documentId.originalName} · </span>
+                            <span className="truncate block sm:inline">{t.documentId.originalName} · </span>
                           )}
                           {t.fields.length} field{t.fields.length !== 1 ? "s" : ""} · {t.signerCount} signer{t.signerCount !== 1 ? "s" : ""}
                         </div>
@@ -100,35 +102,36 @@ export default function TemplatesPage() {
                     </div>
 
                     {/* Right: stats + actions */}
-                    <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-auto sm:ml-0">
                       <div className="text-right hidden md:block">
-                        <div className="text-sm font-medium text-gray-900">{t.usageCount}</div>
-                        <div className="text-xs text-gray-400">times used</div>
+                        <div className="text-xs sm:text-sm font-medium text-gray-900">{t.usageCount}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-400">times used</div>
                       </div>
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button
                           size="sm"
-                          className="bg-[var(--primary)] hover:opacity-90"
+                          className="bg-[var(--primary)] hover:opacity-90 text-xs py-1 h-7 sm:h-8"
                           onClick={() => router.push(`/send?templateId=${t._id}`)}
                         >
-                          <Send className="h-4 w-4 mr-1.5" /> Send
+                          <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1" /> <span className="hidden sm:inline">Send</span>
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-7 w-7 sm:h-8 sm:w-8"
                           onClick={() => router.push(`/send?templateId=${t._id}&mode=edit`)}
                           title="Edit fields"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(t._id)}
                           title="Archive"
-                          className="text-red-400 hover:text-red-600"
+                          className="h-7 w-7 sm:h-8 sm:w-8 text-red-400 hover:text-red-600"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>

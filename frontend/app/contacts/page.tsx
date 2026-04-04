@@ -110,25 +110,29 @@ export default function ContactsPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-2 sm:px-3 md:px-6 py-4 sm:py-6 md:py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Contacts</h1>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" /> Import CSV
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: "var(--foreground)" }}>Contacts</h1>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button variant="outline" onClick={() => setImportOpen(true)} className="w-full sm:w-auto text-sm py-1.5">
+              <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="sm:hidden">Import</span>
+              <span className="hidden sm:inline">Import CSV</span>
             </Button>
-            <Button className="bg-[var(--primary)] hover:opacity-90" onClick={() => setDrawerOpen(true)}>
-              <UserPlus className="h-4 w-4 mr-2" /> Add Contact
+            <Button className="bg-[var(--primary)] hover:opacity-90 w-full sm:w-auto text-sm py-1.5" onClick={() => setDrawerOpen(true)}>
+              <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">Add Contact</span>
             </Button>
           </div>
         </div>
 
         {/* Search */}
-        <div className="relative mb-6 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
-          <Input className="pl-9" placeholder="Search by name, email, company..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="relative mb-3 sm:mb-4 md:mb-6 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4" style={{ color: "var(--muted-foreground)" }} />
+          <Input className="pl-9 w-full text-sm py-1.5 sm:py-2" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {/* Contacts Card */}
@@ -150,36 +154,36 @@ export default function ContactsPage() {
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 {contacts.map((c) => (
                   <div
                     key={c._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => router.push(`/contacts/${c._id}`)}
                   >
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="w-7 h-7 sm:w-8 sm:h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">
                         {c.name[0].toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium text-gray-900">{c.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-3 mt-0.5">
-                          <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{c.email}</span>
-                          {c.company && <span className="flex items-center gap-1 hidden sm:flex"><Building2 className="h-3.5 w-3.5" />{c.company}</span>}
+                        <div className="font-medium text-gray-900 text-sm">{c.name}</div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1 sm:gap-2 mt-0.5">
+                          <span className="flex items-center gap-1 truncate max-w-[100px] sm:max-w-none"><Mail className="h-3 w-3 flex-shrink-0" /><span className="truncate text-[10px] sm:text-xs">{c.email}</span></span>
+                          {c.company && <span className="flex items-center gap-1 hidden sm:flex text-xs"><Building2 className="h-3 w-3" />{c.company}</span>}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0 ml-auto sm:ml-0">
                       <div className="text-right hidden md:block">
-                        <div className="text-sm font-medium text-gray-900">{c.totalSent}</div>
-                        <div className="text-xs text-gray-400">documents sent</div>
+                        <div className="text-xs sm:text-sm font-medium text-gray-900">{c.totalSent}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-400">documents sent</div>
                       </div>
                       {c.totalCompleted > 0 && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium hidden lg:inline">
+                        <span className="text-[10px] bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium hidden lg:inline">
                           {c.totalCompleted} completed
                         </span>
                       )}
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     </div>
                   </div>
                 ))}

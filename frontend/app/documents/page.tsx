@@ -157,33 +157,36 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <NavBar />
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-2 sm:px-3 md:px-6 py-4 sm:py-6 md:py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Documents</h1>
-          <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: "var(--foreground)" }}>Documents</h1>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleUpload} />
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-              <Upload className="h-4 w-4 mr-2" />
-              {uploading ? "Uploading..." : "Upload Document"}
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full sm:w-auto text-sm py-1.5">
+              <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="sm:hidden">{uploading ? "Uploading..." : "Upload"}</span>
+              <span className="hidden sm:inline">{uploading ? "Uploading..." : "Upload Document"}</span>
             </Button>
-            <Button className="bg-[var(--primary)] hover:opacity-90" onClick={() => router.push("/send")}>
-              <Send className="h-4 w-4 mr-2" /> Send Document
+            <Button className="bg-[var(--primary)] hover:opacity-90 w-full sm:w-auto text-sm py-1.5" onClick={() => router.push("/send")}>
+              <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="sm:hidden">Send</span>
+              <span className="hidden sm:inline">Send Document</span>
             </Button>
           </div>
         </div>
 
         {/* Search */}
-        <div className="relative mb-6 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--muted-foreground)" }} />
-          <Input className="pl-9" placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="relative mb-3 sm:mb-4 md:mb-6 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4" style={{ color: "var(--muted-foreground)" }} />
+          <Input className="pl-9 w-full text-sm py-1.5 sm:py-2" placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {/* Documents Card */}
         <Card className="overflow-visible">
-          <CardHeader>
-            <CardTitle>All Documents ({filtered.length})</CardTitle>
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base">All Documents ({filtered.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -202,17 +205,17 @@ export default function DocumentsPage() {
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 {filtered.map((doc) => (
                   <div
                     key={doc._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => renamingId !== doc._id && setPreviewDoc(doc)}
                   >
                     {/* Icon + name/meta */}
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-5 w-5 text-indigo-600" />
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="w-7 h-7 sm:w-8 sm:h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
                       </div>
                       <div className="min-w-0 flex-1">
                         {renamingId === doc._id ? (
@@ -232,34 +235,34 @@ export default function DocumentsPage() {
                               disabled={renameSaving}
                               className="cursor-pointer text-green-600 hover:text-green-700"
                             >
-                              <Check className="h-4 w-4" />
+                              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>
                             <button
                               onClick={() => setRenamingId(null)}
                               className="cursor-pointer text-gray-400 hover:text-gray-600"
                             >
-                              <X className="h-4 w-4" />
+                              <X className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>
                           </div>
                         ) : (
                           <div
-                            className="font-medium text-gray-900 truncate cursor-pointer hover:text-indigo-600"
+                            className="font-medium text-gray-900 truncate cursor-pointer hover:text-indigo-600 text-sm"
                             onDoubleClick={() => startRename(doc)}
                             title="Double-click to rename"
                           >
                             {doc.originalName}
                           </div>
                         )}
-                        <div className="text-xs text-gray-400 mt-0.5">
+                        <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5 hidden sm:block">
                           {doc.pageCount} page{doc.pageCount !== 1 ? "s" : ""} · {fmt(doc.fileSize || 0)} · {new Date(doc.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
 
                     {/* Right side: badge + menu */}
-                    <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                       {doc.isTemplate && (
-                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+                        <span className="text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
                           Template
                         </span>
                       )}

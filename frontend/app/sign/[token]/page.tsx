@@ -336,21 +336,21 @@ export default function SignPage({
   // ---- Render states ----
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">Loading document...</div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-gray-400 text-sm sm:text-base">Loading document...</div>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50">
-        <div className="text-center p-8 max-w-md">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-green-50 p-4">
+        <div className="text-center p-6 sm:p-8 max-w-md">
+          <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-green-500 mx-auto mb-4" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Document Signed!
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             You have successfully signed the document. You&apos;ll receive a
             copy by email once all parties have signed.
           </p>
@@ -361,13 +361,13 @@ export default function SignPage({
 
   if (declined) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8 max-w-md">
-          <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center p-6 sm:p-8 max-w-md">
+          <AlertCircle className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-4" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Signing Declined
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             You have declined to sign this document.
           </p>
         </div>
@@ -377,17 +377,17 @@ export default function SignPage({
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8 max-w-md">
-          <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center p-6 sm:p-8 max-w-md">
+          <AlertCircle className="h-12 w-12 sm:h-16 sm:w-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             {error === "already_signed"
               ? "Already Signed"
               : error === "already_declined"
               ? "Already Declined"
               : "Invalid Link"}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             {error === "already_signed"
               ? "You have already signed this document."
               : error === "already_declined"
@@ -455,13 +455,14 @@ export default function SignPage({
 
       {/* Message banner */}
       {session?.message && (
-        <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-3 text-sm text-indigo-700">
-          <strong>Message:</strong> {session.message}
+        <div className="bg-indigo-50 border-b border-indigo-100 px-3 sm:px-6 py-2 sm:py-3 text-sm text-indigo-700">
+          <strong className="hidden sm:inline">Message:</strong>
+          <span className="sm:hidden font-medium">Msg:</span> {session.message}
         </div>
       )}
 
       {/* Signer info */}
-      <div className="bg-white border-b border-gray-100 px-6 py-2 text-sm text-gray-500">
+      <div className="bg-white border-b border-gray-100 px-3 sm:px-6 py-2 text-xs sm:text-sm text-gray-500">
         Signing as{" "}
         <span className="font-medium text-gray-700">
           {session?.signer?.name}
@@ -470,7 +471,7 @@ export default function SignPage({
       </div>
 
       {/* PDF with fields */}
-      <div className="max-w-4xl mx-auto py-6 px-4">
+      <div className="max-w-4xl mx-auto py-4 sm:py-6 px-2 sm:px-4">
         <div className="space-y-4">
           {pdfPages.map((canvas, pageIndex) => (
             <div
