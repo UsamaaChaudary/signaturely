@@ -341,19 +341,23 @@ export default function Dashboard() {
           : previewReq.documentId?.filePath;
         if (!filePath) return null;
 
-        const previewFields = (previewReq.fields ?? []).map((f) => {
-          const signerIdx = previewReq.signers?.findIndex((s) => s._id === f.signerId) ?? 0;
-          return {
-            type: f.type,
-            page: f.page,
-            x: f.x,
-            y: f.y,
-            width: f.width,
-            height: f.height,
-            required: f.required,
-            signerSlot: String(signerIdx + 1),
-          };
-        });
+        // Don't show placeholder field overlays when the document is completed —
+        // the signed PDF already has signatures baked in.
+        const previewFields = previewReq.status === "completed"
+          ? []
+          : (previewReq.fields ?? []).map((f) => {
+              const signerIdx = previewReq.signers?.findIndex((s) => s._id === f.signerId) ?? 0;
+              return {
+                type: f.type,
+                page: f.page,
+                x: f.x,
+                y: f.y,
+                width: f.width,
+                height: f.height,
+                required: f.required,
+                signerSlot: String(signerIdx + 1),
+              };
+            });
 
         return (
           <PdfPreviewModal
