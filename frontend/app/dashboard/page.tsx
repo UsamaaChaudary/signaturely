@@ -16,6 +16,7 @@ import {
   Download,
   Eye,
   Bell,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ const statusIcons: Record<string, React.ElementType> = {
 
 interface Signer {
   status: string;
+  signingToken?: string;
 }
 
 interface Request {
@@ -84,6 +86,26 @@ export default function Dashboard() {
       const message =
         err instanceof Error ? err.message : "Failed to send reminder";
       toast.error("Error", { description: message });
+    }
+  };
+
+  const copyLink = (req: Request) => {
+    // For pending/in_progress: copy the first pending signer's signing URL
+    // For completed: copy the completed file URL
+    if (req.status === "completed" && req.completedFilePath) {
+      navigator.clipboard.writeText(getCompletedFileUrl(req.completedFilePath)).then(() => {
+        toast.success("Document link copied");
+      });
+      return;
+    }
+    const pendingSigner = req.signers?.find(
+      (s) => s.status !== "completed" && s.status !== "declined" && s.signingToken
+    );
+    if (pendingSigner?.signingToken) {
+      const url = `${window.location.origin}/sign/${pendingSigner.signingToken}`;
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success("Signing link copied", { description: "Share this link with the signer" });
+      });
     }
   };
 
@@ -216,9 +238,25 @@ export default function Dashboard() {
                         <Link
                           href={`/requests/${req._id}`}
                           className={buttonVariants({ variant: "ghost", size: "sm" })}
+                          title="View details"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
+                        {/* Copy link — tooltip via title + group hover label */}
+                        <div className="relative group">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyLink(req)}
+                            className="text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50"
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </Button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex items-center whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs text-white shadow-md z-50">
+                            {req.status === "completed" ? "Copy document link" : "Copy signing link"}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </div>
                         {req.status === "completed" &&
                           req.completedFilePath && (
                             <a
@@ -226,6 +264,7 @@ export default function Dashboard() {
                               target="_blank"
                               rel="noreferrer"
                               className={buttonVariants({ variant: "ghost", size: "sm" })}
+                              title="Download signed PDF"
                             >
                               <Download className="h-4 w-4" />
                             </a>
@@ -236,6 +275,7 @@ export default function Dashboard() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              title="Send reminder"
                               onClick={() => handleRemind(req._id)}
                             >
                               <Bell className="h-4 w-4" />
@@ -243,6 +283,7 @@ export default function Dashboard() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              title="Cancel request"
                               onClick={() => handleCancel(req._id)}
                               className="text-red-400 hover:text-red-600"
                             >

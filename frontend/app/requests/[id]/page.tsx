@@ -16,6 +16,8 @@ import {
   Clock,
   Eye,
   XCircle,
+  Link2,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -39,6 +41,7 @@ interface SignerRecord {
   name: string;
   email: string;
   status: string;
+  signingToken?: string;
   signedAt?: string;
   viewedAt?: string;
   ipAddress?: string;
@@ -105,6 +108,13 @@ export default function RequestDetailPage({
         err instanceof Error ? err.message : "Failed to send reminder";
       toast.error("Error", { description: message });
     }
+  };
+
+  const copySigningLink = (token: string) => {
+    const url = `${window.location.origin}/sign/${token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Signing link copied", { description: "Share this link with the signer" });
+    });
   };
 
   const handleCancel = async () => {
@@ -224,32 +234,44 @@ export default function RequestDetailPage({
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            signerStatusColors[signer.status] ||
-                            "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {signer.status}
-                        </span>
-                        {signer.signedAt && (
-                          <div className="text-xs text-gray-400 mt-1">
-                            Signed{" "}
-                            {new Date(signer.signedAt).toLocaleString()}
-                          </div>
+                      <div className="flex items-center gap-2">
+                        {signer.signingToken && signer.status !== "completed" && signer.status !== "declined" && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            title="Copy signing link"
+                            onClick={() => copySigningLink(signer.signingToken!)}
+                          >
+                            <Link2 className="h-4 w-4 text-indigo-400" />
+                          </Button>
                         )}
-                        {signer.viewedAt && !signer.signedAt && (
-                          <div className="text-xs text-gray-400 mt-1">
-                            Viewed{" "}
-                            {new Date(signer.viewedAt).toLocaleString()}
-                          </div>
-                        )}
-                        {signer.ipAddress && (
-                          <div className="text-xs text-gray-400">
-                            {signer.ipAddress}
-                          </div>
-                        )}
+                        <div className="text-right">
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              signerStatusColors[signer.status] ||
+                              "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {signer.status}
+                          </span>
+                          {signer.signedAt && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              Signed{" "}
+                              {new Date(signer.signedAt).toLocaleString()}
+                            </div>
+                          )}
+                          {signer.viewedAt && !signer.signedAt && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              Viewed{" "}
+                              {new Date(signer.viewedAt).toLocaleString()}
+                            </div>
+                          )}
+                          {signer.ipAddress && (
+                            <div className="text-xs text-gray-400">
+                              {signer.ipAddress}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -307,17 +329,31 @@ export default function RequestDetailPage({
               <CardContent className="space-y-2">
                 {request.status === "completed" &&
                   request.completedFilePath && (
-                    <a
-                      href={getCompletedFileUrl(request.completedFilePath)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={buttonVariants({
-                        className: "w-full bg-green-600 hover:bg-green-700",
-                      })}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Signed PDF
-                    </a>
+                    <>
+                      <a
+                        href={getCompletedFileUrl(request.completedFilePath)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={buttonVariants({
+                          variant: "outline",
+                          className: "w-full",
+                        })}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        View Signed PDF
+                      </a>
+                      <a
+                        href={getCompletedFileUrl(request.completedFilePath)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={buttonVariants({
+                          className: "w-full bg-green-600 hover:bg-green-700",
+                        })}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Signed PDF
+                      </a>
+                    </>
                   )}
                 {(request.status === "pending" ||
                   request.status === "in_progress") && (

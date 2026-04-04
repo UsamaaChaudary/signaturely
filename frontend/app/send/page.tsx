@@ -168,6 +168,26 @@ function SendPageInner() {
           templateId:   template?._id || null,
         });
       }
+
+      // Upsert contacts for manually-entered signers (no contactId)
+      for (const signer of signers) {
+        if (signer.contactId) continue;
+        if (!signer.email || !signer.email.includes("@")) continue;
+        try {
+          const data = await api.getContacts({ search: signer.email, limit: "5" });
+          const existing = (data.contacts || []).find(
+            (c: { email: string }) => c.email.toLowerCase() === signer.email.toLowerCase()
+          );
+          if (existing) {
+            if (existing.name !== signer.name && signer.name && signer.name !== signer.email) {
+              await api.updateContact(existing._id, { name: signer.name });
+            }
+          } else {
+            await api.createContact({ name: signer.name || signer.email, email: signer.email });
+          }
+        } catch { /* non-critical — contact sync failure should not block the user */ }
+      }
+
       toast.success(`${signers.length} request${signers.length > 1 ? "s" : ""} sent`);
       router.push("/dashboard");
     } catch (err: unknown) {
