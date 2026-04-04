@@ -278,16 +278,28 @@ export default function Dashboard() {
                           </div>
                         </div>
 
-                        {req.status === "completed" && req.completedFilePath && (
-                          <a
-                            href={getCompletedFileUrl(req.completedFilePath)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={buttonVariants({ variant: "ghost", size: "sm" })}
-                            title="Download signed PDF"
-                          >
-                            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </a>
+                        {req.status === "completed" && (
+                          req.completedFilePath ? (
+                            <a
+                              href={getCompletedFileUrl(req.completedFilePath)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={buttonVariants({ variant: "ghost", size: "sm" })}
+                              title="Download signed PDF"
+                            >
+                              <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </a>
+                          ) : req.documentId?.filePath ? (
+                            <a
+                              href={req.documentId.filePath}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={buttonVariants({ variant: "ghost", size: "sm" })}
+                              title="View original document"
+                            >
+                              <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </a>
+                          ) : null
                         )}
 
                         {isPending && (
