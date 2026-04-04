@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import PageLayout from "@/components/PageLayout";
+import NavBar from "@/components/NavBar";
 import DocumentPicker from "@/components/DocumentPicker";
 import FieldPlacer, { Field, Signer, SIGNER_COLORS } from "@/components/FieldPlacer";
 import ContactSearchInput from "@/components/ContactSearchInput";
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Layers, Check } from "lucide-react";
+import { ArrowLeft, Send, Layers, Check, FileText, ChevronRight } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -125,18 +126,18 @@ function SendPageInner() {
   };
 
   // Save as template flow
-  const handleSaveTemplate = async () => {
-    if (!document || !tmplName.trim()) { toast.error("Template name is required"); return; }
+  const handleSaveTemplate = async (name: string) => {
+    if (!document) { toast.error("No document selected"); return; }
     setSavingTemplate(true);
     try {
       await api.createTemplate({
         documentId:  document._id,
-        name:        tmplName.trim(),
+        name:        name.trim(),
         signerCount: signers.length,
         fields:      fields.map((f) => ({ signerSlot: f.signerId, type: f.type, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required })),
       });
-      toast.success("Template saved", { description: tmplName });
-      router.push("/templates");
+      toast.success("Template saved!", { description: name });
+      if (isTemplateMode) router.push("/templates");
     } catch (err: unknown) {
       toast.error("Save failed", { description: err instanceof Error ? err.message : "Error" });
     } finally { setSavingTemplate(false); }
@@ -181,6 +182,136 @@ function SendPageInner() {
 
   const currentIdx     = steps.indexOf(step);
 
+  // ── Step indicator (shared between layouts) ──────────────────────────────
+  const stepIndicator = (
+    <div className="flex items-center gap-2 text-sm">
+      {steps.map((s, i) => (
+        <div key={s} className="flex items-center gap-2">
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+              currentIdx > i ? "bg-green-500 text-white" : step === s ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
+            }`}
+          >
+            {currentIdx > i ? <Check className="h-3 w-3" /> : i + 1}
+          </div>
+          <span className={step === s ? "text-indigo-600 font-medium" : currentIdx > i ? "text-green-600" : "text-gray-400"}>
+            {stepLabels[i]}
+          </span>
+          {i < steps.length - 1 && <span className="text-gray-300 mx-1">›</span>}
+        </div>
+      ))}
+    </div>
+  );
+
+  // ── Full-screen layout for field placement (nothing scrolls except the PDF) ──
+  if (step === "fields" && document) {
+    return (
+      <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
+        <NavBar />
+
+        {/* Pinned header bar */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3">
+
+            {/* Left: back + divider + icon + title */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setStep("document")}
+              className="text-gray-500 hover:text-gray-900 flex-shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            </Button>
+
+            <div className="h-5 w-px bg-gray-200 flex-shrink-0" />
+
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                {isTemplateMode
+                  ? <Layers className="h-4 w-4 text-white" />
+                  : <Send className="h-4 w-4 text-white" />
+                }
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-sm font-bold text-gray-900 leading-tight">
+                  {isTemplateMode ? "Create Template" : "Place Signature Fields"}
+                </h1>
+                <p className="text-xs text-gray-400 truncate">{document.originalName}</p>
+              </div>
+            </div>
+
+            {/* Center: step indicator */}
+            <div className="flex-shrink-0">{stepIndicator}</div>
+
+            <div className="h-5 w-px bg-gray-200 flex-shrink-0" />
+
+            {/* Right: fields count + primary CTA */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {fields.length > 0 && (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1.5">
+                  <FileText className="h-3 w-3" />
+                  {fields.length} field{fields.length !== 1 ? "s" : ""} placed
+                </span>
+              )}
+              <Button
+                className="group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-md hover:shadow-lg px-6 gap-2 cursor-pointer transition-all duration-200"
+                onClick={isTemplateMode
+                  ? () => { if (!tmplName.trim()) { toast.error("Template name is required"); return; } handleSaveTemplate(tmplName); }
+                  : () => setStep("signers")
+                }
+                disabled={isTemplateMode && savingTemplate}
+              >
+                {isTemplateMode ? (savingTemplate ? "Saving..." : "Save Template") : "Next Step"}
+                <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Template name banner */}
+        {isTemplateMode && (
+          <div className="flex-shrink-0 px-6 pt-3 max-w-7xl mx-auto w-full">
+            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-3">
+              <Layers className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-indigo-900">Template Mode — place fields then save.</p>
+              </div>
+              <Input
+                className="w-48 text-sm"
+                placeholder="Template name *"
+                value={tmplName}
+                onChange={(e) => setTmplName(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* FieldPlacer — fills all remaining height; only the PDF inside scrolls */}
+        <div className="flex-1 min-h-0 px-6 py-4 max-w-7xl mx-auto w-full">
+          <FieldPlacer
+            pdfPages={pdfPages}
+            fields={fields}
+            signers={signers}
+            selectedTool={selectedTool}
+            selectedSignerId={selectedSigner}
+            loadingPdf={loadingPdf}
+            onFieldsChange={setFields}
+            onToolChange={setSelectedTool}
+            onSignerChange={setSelectedSigner}
+            onNext={isTemplateMode ? () => {
+                if (!tmplName.trim()) { toast.error("Template name is required"); return; }
+                handleSaveTemplate(tmplName);
+              } : () => setStep("signers")}
+            onBack={() => setStep("document")}
+            nextLabel={isTemplateMode ? (savingTemplate ? "Saving..." : "Save Template") : "Next Step"}
+            onSaveTemplate={!isTemplateMode ? handleSaveTemplate : undefined}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PageLayout>
       {/* Header */}
@@ -198,64 +329,11 @@ function SendPageInner() {
       </div>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-6 text-sm">
-        {steps.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                currentIdx > i ? "bg-green-500 text-white" : step === s ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
-              }`}
-            >
-              {currentIdx > i ? <Check className="h-3 w-3" /> : i + 1}
-            </div>
-            <span className={step === s ? "text-indigo-600 font-medium" : currentIdx > i ? "text-green-600" : "text-gray-400"}>
-              {stepLabels[i]}
-            </span>
-            {i < steps.length - 1 && <span className="text-gray-300 mx-1">›</span>}
-          </div>
-        ))}
-      </div>
+      <div className="mb-6">{stepIndicator}</div>
 
       {/* Step 1: Document */}
       {step === "document" && (
         <DocumentPicker selectedId={document?._id} onSelect={handleDocumentSelect} />
-      )}
-
-      {/* Step 2: Fields */}
-      {step === "fields" && document && (
-        <>
-          {isTemplateMode && (
-            <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg flex items-start gap-3">
-              <Layers className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-indigo-900">Template Mode</p>
-                <p className="text-xs text-indigo-700 mt-0.5">Place fields, then save as a reusable template.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  className="w-48 text-sm"
-                  placeholder="Template name *"
-                  value={tmplName}
-                  onChange={(e) => setTmplName(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-          <FieldPlacer
-            pdfPages={pdfPages}
-            fields={fields}
-            signers={signers}
-            selectedTool={selectedTool}
-            selectedSignerId={selectedSigner}
-            loadingPdf={loadingPdf}
-            onFieldsChange={setFields}
-            onToolChange={setSelectedTool}
-            onSignerChange={setSelectedSigner}
-            onNext={isTemplateMode ? handleSaveTemplate : () => setStep("signers")}
-            onBack={() => setStep("document")}
-            nextLabel={isTemplateMode ? (savingTemplate ? "Saving..." : "Save Template") : "Next: Add Signers"}
-          />
-        </>
       )}
 
       {/* Step 3: Signers & Send */}

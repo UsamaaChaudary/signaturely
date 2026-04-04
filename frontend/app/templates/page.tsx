@@ -7,6 +7,7 @@ import NavBar from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import PdfPreviewModal, { PreviewField } from "@/components/PdfPreviewModal";
 import { FileText, Send, Trash2, Plus, FileStack, Edit2 } from "lucide-react";
 
 interface Template {
@@ -15,16 +16,17 @@ interface Template {
   description: string;
   signerCount: number;
   usageCount: number;
-  fields: unknown[];
-  documentId?: { originalName: string; pageCount: number };
+  fields: PreviewField[];
+  documentId?: { _id: string; originalName: string; pageCount: number; filePath?: string };
   createdAt: string;
 }
 
 export default function TemplatesPage() {
   useRequireAuth();
   const router = useRouter();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading,   setLoading]   = useState(true);
+  const [templates,    setTemplates]    = useState<Template[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [previewTmpl,  setPreviewTmpl]  = useState<Template | null>(null);
 
   useEffect(() => {
     api.getTemplates()
@@ -78,7 +80,8 @@ export default function TemplatesPage() {
                 {templates.map((t) => (
                   <div
                     key={t._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => setPreviewTmpl(t)}
                   >
                     {/* Left: icon + info */}
                     <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -102,7 +105,7 @@ export default function TemplatesPage() {
                         <div className="text-sm font-medium text-gray-900">{t.usageCount}</div>
                         <div className="text-xs text-gray-400">times used</div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button
                           size="sm"
                           className="bg-indigo-600 hover:bg-indigo-700"
@@ -136,6 +139,17 @@ export default function TemplatesPage() {
           </CardContent>
         </Card>
       </main>
+      {/* Template document preview */}
+      {previewTmpl && previewTmpl.documentId?.filePath && (
+        <PdfPreviewModal
+          fileName={previewTmpl.name}
+          filePath={previewTmpl.documentId.filePath}
+          pageCount={previewTmpl.documentId.pageCount}
+          editHref={`/send?templateId=${previewTmpl._id}&mode=edit`}
+          previewFields={previewTmpl.fields}
+          onClose={() => setPreviewTmpl(null)}
+        />
+      )}
     </div>
   );
 }

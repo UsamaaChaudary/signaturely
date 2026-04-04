@@ -27,10 +27,11 @@ const signerStatusColors: Record<string, string> = {
 };
 
 const requestStatusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
+  pending:     "bg-yellow-100 text-yellow-800",
   in_progress: "bg-blue-100 text-blue-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-800",
+  completed:   "bg-green-100 text-green-800",
+  cancelled:   "bg-gray-100 text-gray-800",
+  declined:    "bg-red-100 text-red-800",
 };
 
 interface SignerRecord {
@@ -148,7 +149,7 @@ export default function RequestDetailPage({
             {request.title}
           </h1>
           <span
-            className={`text-sm px-3 py-1 rounded-full font-medium ${
+            className={`text-sm px-3 py-1 rounded-full font-medium capitalize ${
               requestStatusColors[request.status] ||
               "bg-gray-100 text-gray-800"
             }`}
@@ -156,6 +157,29 @@ export default function RequestDetailPage({
             {request.status.replace("_", " ")}
           </span>
         </div>
+
+        {/* Declined alert banner */}
+        {request.status === "declined" && (() => {
+          const declinedSigners = request.signers.filter((s) => s.status === "declined");
+          return (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-red-800">
+                  Document declined — this request can no longer be completed
+                </p>
+                {declinedSigners.length > 0 && (
+                  <p className="text-sm text-red-600 mt-0.5">
+                    Declined by: {declinedSigners.map((s) => s.name || s.email).join(", ")}
+                  </p>
+                )}
+                <p className="text-xs text-red-500 mt-1">
+                  To proceed, create a new signing request with the same document.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2 space-y-6">
@@ -318,7 +342,12 @@ export default function RequestDetailPage({
                 )}
                 {request.status === "cancelled" && (
                   <p className="text-sm text-gray-400 text-center py-2">
-                    This request has been cancelled
+                    This request has been cancelled.
+                  </p>
+                )}
+                {request.status === "declined" && (
+                  <p className="text-sm text-red-500 text-center py-2">
+                    This request was declined by a signer.
                   </p>
                 )}
               </CardContent>

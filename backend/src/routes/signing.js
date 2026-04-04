@@ -134,8 +134,12 @@ router.post('/:token/decline', async (req, res) => {
     signer.declineReason = reason || '';
     signer.ipAddress = req.ip || req.connection.remoteAddress;
 
+    // If any signer declines, the whole request is declined —
+    // the document can no longer reach full completion.
+    request.status = 'declined';
+
     await request.save();
-    res.json({ message: 'Declined successfully' });
+    res.json({ message: 'Declined successfully', signerName: signer.name });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

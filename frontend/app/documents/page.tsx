@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import PdfPreviewModal from "@/components/PdfPreviewModal";
 import { FileText, Upload, Send, BookMarked, Trash2, Search, MoreVertical, Pencil, Check, X } from "lucide-react";
 
 interface Doc {
@@ -88,6 +89,9 @@ export default function DocumentsPage() {
   const [templateDoc,      setTemplateDoc]      = useState<Doc | null>(null);
   const [templateName,     setTemplateName]     = useState("");
   const [savingTemplate,   setSavingTemplate]   = useState(false);
+
+  // Preview modal state
+  const [previewDoc,       setPreviewDoc]       = useState<Doc | null>(null);
 
   useEffect(() => {
     api.getDocuments()
@@ -202,7 +206,8 @@ export default function DocumentsPage() {
                 {filtered.map((doc) => (
                   <div
                     key={doc._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => renamingId !== doc._id && setPreviewDoc(doc)}
                   >
                     {/* Icon + name/meta */}
                     <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -252,7 +257,7 @@ export default function DocumentsPage() {
                     </div>
 
                     {/* Right side: badge + menu */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                       {doc.isTemplate && (
                         <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
                           Template
@@ -272,6 +277,16 @@ export default function DocumentsPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Document Preview modal */}
+      {previewDoc && previewDoc.filePath && (
+        <PdfPreviewModal
+          fileName={previewDoc.originalName}
+          filePath={previewDoc.filePath}
+          pageCount={previewDoc.pageCount}
+          onClose={() => setPreviewDoc(null)}
+        />
+      )}
 
       {/* Save as Template modal */}
       {templateDoc && (

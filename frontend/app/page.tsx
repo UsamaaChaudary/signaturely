@@ -185,7 +185,7 @@ export default function Dashboard() {
                   return (
                     <div
                       key={req._id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                     >
                       <div className="flex items-center gap-4">
                         <Icon
