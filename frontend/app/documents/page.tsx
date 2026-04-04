@@ -43,6 +43,7 @@ function ActionMenu({ onRename, onSend, onTemplate, onDelete }: {
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
         className="cursor-pointer p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+        title="More options"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
@@ -234,12 +235,14 @@ export default function DocumentsPage() {
                               onClick={() => commitRename(doc._id)}
                               disabled={renameSaving}
                               className="cursor-pointer text-green-600 hover:text-green-700"
+                              title="Save"
                             >
                               <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>
                             <button
                               onClick={() => setRenamingId(null)}
                               className="cursor-pointer text-gray-400 hover:text-gray-600"
+                              title="Cancel"
                             >
                               <X className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>

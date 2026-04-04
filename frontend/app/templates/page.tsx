@@ -59,7 +59,7 @@ export default function TemplatesPage() {
         </div>
 
         {/* Templates Card */}
-        <Card>
+        <Card className="overflow-visible">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-sm sm:text-base">Saved Templates ({templates.length})</CardTitle>
           </CardHeader>
@@ -115,24 +115,34 @@ export default function TemplatesPage() {
                         >
                           <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1" /> <span className="hidden sm:inline">Send</span>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 sm:h-8 sm:w-8"
-                          onClick={() => router.push(`/send?templateId=${t._id}&mode=edit`)}
-                          title="Edit fields"
-                        >
-                          <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(t._id)}
-                          title="Archive"
-                          className="h-7 w-7 sm:h-8 sm:w-8 text-red-400 hover:text-red-600"
-                        >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
+                        <div className="relative group">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={() => router.push(`/send?templateId=${t._id}&mode=edit`)}
+                          >
+                            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex items-center whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs text-white shadow-md z-50">
+                            Edit fields
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </div>
+                        <div className="relative group">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(t._id)}
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-red-400 hover:text-red-600"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex items-center whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs text-white shadow-md z-50">
+                            Archive template
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

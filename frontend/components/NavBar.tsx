@@ -122,6 +122,7 @@ export default function NavBar() {
         <button
           className="md:hidden p-2 cursor-pointer rounded-lg hover:bg-[var(--muted)]"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          title={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? (
             <X className="h-6 w-6" style={{ color: "var(--foreground)" }} />

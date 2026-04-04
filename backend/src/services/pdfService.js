@@ -46,11 +46,12 @@ async function mergeSignatures(request) {
         maxWidth: w - 4,
       });
     } else if (field.type === 'checkbox' && field.value === 'true') {
-      // Draw two diagonal lines forming an X — avoids non-Latin glyph issues
-      // with StandardFonts (Helvetica doesn't include ✓ / U+2713).
+      // Draw a checkmark (✓) using two lines: short stroke down-left, long stroke up-right
       const padding = 2;
-      page.drawLine({ start: { x: x + padding, y: y + padding }, end: { x: x + w - padding, y: y + h - padding }, thickness: 1.5, color: rgb(0, 0.5, 0) });
-      page.drawLine({ start: { x: x + w - padding, y: y + padding }, end: { x: x + padding, y: y + h - padding }, thickness: 1.5, color: rgb(0, 0.5, 0) });
+      const midX = x + w * 0.3;
+      const midY = y + h * 0.3;
+      page.drawLine({ start: { x: x + padding, y: y + h * 0.5 }, end: { x: midX, y: y + padding }, thickness: 1.5, color: rgb(0, 0.5, 0) });
+      page.drawLine({ start: { x: midX, y: y + padding }, end: { x: x + w - padding, y: y + h - padding }, thickness: 1.5, color: rgb(0, 0.5, 0) });
     }
   }
 

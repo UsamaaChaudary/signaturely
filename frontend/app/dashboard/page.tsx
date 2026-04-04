@@ -193,7 +193,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="overflow-visible">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-sm sm:text-base">Signing Requests</CardTitle>
           </CardHeader>
