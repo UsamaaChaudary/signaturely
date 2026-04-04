@@ -37,6 +37,8 @@ const statusIcons: Record<string, React.ElementType> = {
 
 interface Signer {
   _id: string;
+  name: string;
+  email: string;
   status: string;
   signingToken?: string;
 }
@@ -68,6 +70,7 @@ export default function Dashboard() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewReq, setPreviewReq] = useState<Request | null>(null);
+  const [signersModal, setSignersModal] = useState<Request | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -233,9 +236,44 @@ export default function Dashboard() {
                           <div className="font-medium text-gray-900">
                             {req.title}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {req.documentId?.originalName} &bull;{" "}
-                            {completedSigners}/{totalSigners} signed
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span>{req.documentId?.originalName} &bull; {completedSigners}/{totalSigners} signed</span>
+                            {req.signers && req.signers.length > 0 && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setSignersModal(req); }}
+                                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+                              >
+                                <div className="flex items-center -space-x-1.5">
+                                  {req.signers.slice(0, 4).map((signer) => {
+                                    const ringColor =
+                                      signer.status === "completed"
+                                        ? "ring-green-400 bg-green-50 text-green-700"
+                                        : signer.status === "declined"
+                                        ? "ring-red-400 bg-red-50 text-red-600"
+                                        : "ring-amber-400 bg-amber-50 text-amber-700";
+                                    const initial = (signer.name || signer.email)
+                                      .charAt(0)
+                                      .toUpperCase();
+                                    return (
+                                      <div
+                                        key={signer._id}
+                                        className={`w-[22px] h-[22px] rounded-full ring-2 ring-white outline outline-2 text-[10px] font-bold flex items-center justify-center ${ringColor}`}
+                                      >
+                                        {initial}
+                                      </div>
+                                    );
+                                  })}
+                                  {req.signers.length > 4 && (
+                                    <div className="w-[22px] h-[22px] rounded-full ring-2 ring-white bg-gray-100 text-[9px] font-bold text-gray-500 flex items-center justify-center">
+                                      +{req.signers.length - 4}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-xs text-indigo-500 font-medium hover:underline">
+                                  View all
+                                </span>
+                              </button>
+                            )}
                           </div>
                           <div className="text-xs text-gray-400 mt-0.5">
                             {new Date(req.createdAt).toLocaleDateString()}
@@ -349,6 +387,77 @@ export default function Dashboard() {
           />
         );
       })()}
+
+      {/* Signers Modal */}
+      {signersModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setSignersModal(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">{signersModal.title}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {signersModal.signers?.filter((s) => s.status === "completed").length ?? 0} of{" "}
+                  {signersModal.signers?.length ?? 0} signed
+                </p>
+              </div>
+              <button
+                onClick={() => setSignersModal(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors ml-4 mt-0.5"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Signer list */}
+            <ul className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
+              {signersModal.signers?.map((signer) => {
+                const statusConfig = {
+                  completed: { label: "Signed", cls: "bg-green-100 text-green-700" },
+                  declined:  { label: "Declined", cls: "bg-red-100 text-red-600" },
+                  viewed:    { label: "Viewed", cls: "bg-blue-100 text-blue-700" },
+                  pending:   { label: "Pending", cls: "bg-amber-100 text-amber-700" },
+                }[signer.status] ?? { label: signer.status, cls: "bg-gray-100 text-gray-600" };
+
+                const avatarColor =
+                  signer.status === "completed"
+                    ? "bg-green-100 text-green-700"
+                    : signer.status === "declined"
+                    ? "bg-red-100 text-red-600"
+                    : "bg-amber-100 text-amber-700";
+
+                return (
+                  <li key={signer._id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${avatarColor}`}>
+                      {(signer.name || signer.email).charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900 truncate">{signer.name}</div>
+                      <div className="text-xs text-gray-400 truncate">{signer.email}</div>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${statusConfig.cls}`}>
+                      {statusConfig.label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
+              <p className="text-xs text-gray-400 text-center">
+                Click outside to close
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
