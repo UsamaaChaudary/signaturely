@@ -169,7 +169,7 @@ function SendPageInner() {
         });
       }
       toast.success(`${signers.length} request${signers.length > 1 ? "s" : ""} sent`);
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: unknown) {
       toast.error("Send failed", { description: err instanceof Error ? err.message : "Error" });
     } finally { setSending(false); }
