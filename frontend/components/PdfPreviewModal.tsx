@@ -42,9 +42,12 @@ interface Props {
 /**
  * Converts a Cloudinary URL to use fl_inline so the browser renders it
  * instead of triggering a forced download (Content-Disposition: attachment).
+ * NOTE: fl_inline is a transformation flag unsupported on resource_type:raw —
+ * applying it returns HTTP 400. Raw PDFs are returned as-is.
  */
 function toInlineUrl(url: string): string {
   if (!url.includes("res.cloudinary.com")) return url;
+  if (url.includes("/raw/upload/")) return url;
   return url.replace(/\/upload\/(?!fl_inline)/, "/upload/fl_inline/");
 }
 
