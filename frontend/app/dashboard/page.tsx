@@ -21,20 +21,6 @@ import {
 import PdfPreviewModal from "@/components/PdfPreviewModal";
 import { toast } from "sonner";
 
-const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-800",
-};
-
-const statusIcons: Record<string, React.ElementType> = {
-  pending: Clock,
-  in_progress: Clock,
-  completed: CheckCircle,
-  cancelled: XCircle,
-};
-
 interface Signer {
   _id: string;
   name: string;
@@ -65,12 +51,24 @@ interface Request {
   fields?: RequestField[];
 }
 
+// One display row = one signer within a request
+interface SignerRow {
+  req: Request;
+  signer: Signer;
+}
+
+const signerStatusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  completed: { label: "Signed",   color: "bg-green-100 text-green-700",  icon: CheckCircle },
+  declined:  { label: "Declined", color: "bg-red-100 text-red-600",      icon: XCircle },
+  viewed:    { label: "Viewed",   color: "bg-blue-100 text-blue-700",    icon: Eye },
+  pending:   { label: "Pending",  color: "bg-amber-100 text-amber-700",  icon: Clock },
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewReq, setPreviewReq] = useState<Request | null>(null);
-  const [signersModal, setSignersModal] = useState<Request | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -96,33 +94,27 @@ export default function Dashboard() {
     }
   };
 
-  const handleRemind = async (id: string) => {
+  const handleRemind = async (reqId: string) => {
     try {
-      const res = await api.remindRequest(id);
-      toast.success("Reminders sent", { description: res.message });
+      const res = await api.remindRequest(reqId);
+      toast.success("Reminder sent", { description: res.message });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to send reminder";
+      const message = err instanceof Error ? err.message : "Failed to send reminder";
       toast.error("Error", { description: message });
     }
   };
 
-  const copyLink = (req: Request) => {
-    // For pending/in_progress: copy the first pending signer's signing URL
-    // For completed: copy the completed file URL
+  const copySignerLink = (req: Request, signer: Signer) => {
     if (req.status === "completed" && req.completedFilePath) {
       navigator.clipboard.writeText(getCompletedFileUrl(req.completedFilePath)).then(() => {
         toast.success("Document link copied");
       });
       return;
     }
-    const pendingSigner = req.signers?.find(
-      (s) => s.status !== "completed" && s.status !== "declined" && s.signingToken
-    );
-    if (pendingSigner?.signingToken) {
-      const url = `${window.location.origin}/sign/${pendingSigner.signingToken}`;
+    if (signer.signingToken) {
+      const url = `${window.location.origin}/sign/${signer.signingToken}`;
       navigator.clipboard.writeText(url).then(() => {
-        toast.success("Signing link copied", { description: "Share this link with the signer" });
+        toast.success("Signing link copied", { description: `Link for ${signer.name}` });
       });
     }
   };
@@ -139,12 +131,15 @@ export default function Dashboard() {
     }
   };
 
+  // Flatten requests → one row per signer
+  const rows: SignerRow[] = requests.flatMap((req) =>
+    (req.signers ?? []).map((signer) => ({ req, signer }))
+  );
+
   const stats = {
-    total: requests.length,
-    pending: requests.filter(
-      (r) => r.status === "pending" || r.status === "in_progress"
-    ).length,
-    completed: requests.filter((r) => r.status === "completed").length,
+    total: rows.length,
+    pending: rows.filter((r) => r.signer.status === "pending" || r.signer.status === "viewed").length,
+    completed: rows.filter((r) => r.signer.status === "completed").length,
   };
 
   return (
@@ -165,28 +160,20 @@ export default function Dashboard() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-gray-900">
-                {stats.total}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">Total Requests</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+              <div className="text-sm text-gray-500 mt-1">Total Recipients</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-yellow-600">
-                {stats.pending}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                Awaiting Signatures
-              </div>
+              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+              <div className="text-sm text-gray-500 mt-1">Awaiting Signature</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-green-600">
-                {stats.completed}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">Completed</div>
+              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+              <div className="text-sm text-gray-500 mt-1">Signed</div>
             </CardContent>
           </Card>
         </div>
@@ -198,7 +185,7 @@ export default function Dashboard() {
           <CardContent>
             {loading ? (
               <div className="text-center py-8 text-gray-400">Loading...</div>
-            ) : requests.length === 0 ? (
+            ) : rows.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">No signing requests yet.</p>
@@ -210,84 +197,46 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                {requests.map((req) => {
-                  const Icon = statusIcons[req.status] || Clock;
-                  const completedSigners =
-                    req.signers?.filter((s) => s.status === "completed")
-                      .length || 0;
-                  const totalSigners = req.signers?.length || 0;
+              <div className="space-y-2">
+                {rows.map(({ req, signer }) => {
+                  const cfg = signerStatusConfig[signer.status] ?? signerStatusConfig.pending;
+                  const Icon = cfg.icon;
+                  const isPending = signer.status === "pending" || signer.status === "viewed";
+                  const avatarColor =
+                    signer.status === "completed"
+                      ? "bg-green-100 text-green-700"
+                      : signer.status === "declined"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-amber-100 text-amber-700";
 
                   return (
                     <div
-                      key={req._id}
+                      key={`${req._id}-${signer._id}`}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                       onClick={() => router.push(`/requests/${req._id}`)}
                     >
-                      <div className="flex items-center gap-4">
-                        <Icon
-                          className={`h-5 w-5 ${
-                            req.status === "completed"
-                              ? "text-green-600"
-                              : "text-yellow-500"
-                          }`}
-                        />
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {req.title}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>{req.documentId?.originalName} &bull; {completedSigners}/{totalSigners} signed</span>
-                            {req.signers && req.signers.length > 0 && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setSignersModal(req); }}
-                                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-                              >
-                                <div className="flex items-center -space-x-1.5">
-                                  {req.signers.slice(0, 4).map((signer) => {
-                                    const ringColor =
-                                      signer.status === "completed"
-                                        ? "ring-green-400 bg-green-50 text-green-700"
-                                        : signer.status === "declined"
-                                        ? "ring-red-400 bg-red-50 text-red-600"
-                                        : "ring-amber-400 bg-amber-50 text-amber-700";
-                                    const initial = (signer.name || signer.email)
-                                      .charAt(0)
-                                      .toUpperCase();
-                                    return (
-                                      <div
-                                        key={signer._id}
-                                        className={`w-[22px] h-[22px] rounded-full ring-2 ring-white outline outline-2 text-[10px] font-bold flex items-center justify-center ${ringColor}`}
-                                      >
-                                        {initial}
-                                      </div>
-                                    );
-                                  })}
-                                  {req.signers.length > 4 && (
-                                    <div className="w-[22px] h-[22px] rounded-full ring-2 ring-white bg-gray-100 text-[9px] font-bold text-gray-500 flex items-center justify-center">
-                                      +{req.signers.length - 4}
-                                    </div>
-                                  )}
-                                </div>
-                                <span className="text-xs text-indigo-500 font-medium hover:underline">
-                                  View all
-                                </span>
-                              </button>
-                            )}
-                          </div>
+                      {/* Left: avatar + info */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${avatarColor}`}>
+                          {(signer.name || signer.email).charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 truncate">{signer.name}</div>
+                          <div className="text-xs text-gray-400 truncate">{signer.email}</div>
                           <div className="text-xs text-gray-400 mt-0.5">
+                            {req.title} &bull; {req.documentId?.originalName} &bull;{" "}
                             {new Date(req.createdAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            statusColors[req.status]
-                          }`}
-                        >
-                          {req.status.replace("_", " ")}
+
+                      {/* Right: status + actions */}
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-4" onClick={(e) => e.stopPropagation()}>
+                        <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${cfg.color}`}>
+                          <Icon className="h-3 w-3" />
+                          {cfg.label}
                         </span>
+
                         <Button
                           variant="ghost"
                           size="sm"
@@ -296,12 +245,13 @@ export default function Dashboard() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {/* Copy link — tooltip via title + group hover label */}
+
+                        {/* Copy link */}
                         <div className="relative group">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyLink(req)}
+                            onClick={() => copySignerLink(req, signer)}
                             className="text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50"
                           >
                             <Link2 className="h-4 w-4" />
@@ -311,20 +261,20 @@ export default function Dashboard() {
                             <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                           </div>
                         </div>
-                        {req.status === "completed" &&
-                          req.completedFilePath && (
-                            <a
-                              href={getCompletedFileUrl(req.completedFilePath)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={buttonVariants({ variant: "ghost", size: "sm" })}
-                              title="Download signed PDF"
-                            >
-                              <Download className="h-4 w-4" />
-                            </a>
-                          )}
-                        {(req.status === "pending" ||
-                          req.status === "in_progress") && (
+
+                        {req.status === "completed" && req.completedFilePath && (
+                          <a
+                            href={getCompletedFileUrl(req.completedFilePath)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={buttonVariants({ variant: "ghost", size: "sm" })}
+                            title="Download signed PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
+
+                        {isPending && (
                           <>
                             <Button
                               variant="ghost"
@@ -362,7 +312,6 @@ export default function Dashboard() {
           : previewReq.documentId?.filePath;
         if (!filePath) return null;
 
-        // Map request fields → PreviewField format (signerSlot = 1-based index in signers array)
         const previewFields = (previewReq.fields ?? []).map((f) => {
           const signerIdx = previewReq.signers?.findIndex((s) => s._id === f.signerId) ?? 0;
           return {
@@ -387,77 +336,6 @@ export default function Dashboard() {
           />
         );
       })()}
-
-      {/* Signers Modal */}
-      {signersModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-          onClick={() => setSignersModal(null)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-gray-100">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900">{signersModal.title}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {signersModal.signers?.filter((s) => s.status === "completed").length ?? 0} of{" "}
-                  {signersModal.signers?.length ?? 0} signed
-                </p>
-              </div>
-              <button
-                onClick={() => setSignersModal(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors ml-4 mt-0.5"
-              >
-                <XCircle className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Signer list */}
-            <ul className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
-              {signersModal.signers?.map((signer) => {
-                const statusConfig = {
-                  completed: { label: "Signed", cls: "bg-green-100 text-green-700" },
-                  declined:  { label: "Declined", cls: "bg-red-100 text-red-600" },
-                  viewed:    { label: "Viewed", cls: "bg-blue-100 text-blue-700" },
-                  pending:   { label: "Pending", cls: "bg-amber-100 text-amber-700" },
-                }[signer.status] ?? { label: signer.status, cls: "bg-gray-100 text-gray-600" };
-
-                const avatarColor =
-                  signer.status === "completed"
-                    ? "bg-green-100 text-green-700"
-                    : signer.status === "declined"
-                    ? "bg-red-100 text-red-600"
-                    : "bg-amber-100 text-amber-700";
-
-                return (
-                  <li key={signer._id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${avatarColor}`}>
-                      {(signer.name || signer.email).charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 truncate">{signer.name}</div>
-                      <div className="text-xs text-gray-400 truncate">{signer.email}</div>
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${statusConfig.cls}`}>
-                      {statusConfig.label}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {/* Footer */}
-            <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
-              <p className="text-xs text-gray-400 text-center">
-                Click outside to close
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

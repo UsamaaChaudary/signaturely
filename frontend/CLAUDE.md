@@ -49,6 +49,14 @@ This is a Next.js 16 (App Router) e-signature SaaS frontend. The backend runs se
 
 **`use client` directive:** Required on all interactive pages and components that use hooks or browser APIs.
 
+## Project Docs
+
+Before implementing features or fixing bugs, check the `/docs` folder at the repo root:
+
+- **`docs/PRODUCT_DECISIONS.md`** — UX and architectural decisions with rationale (e.g. signing request display model)
+- **`docs/FEATURES.md`** — planned features with frontend implementation notes
+- **`docs/BUGS.md`** — known bugs and their fix options
+
 ## Known Issues
 
 ### PDF Download from Cloudinary (TODO)

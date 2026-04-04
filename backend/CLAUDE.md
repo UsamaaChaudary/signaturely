@@ -42,6 +42,14 @@ src/
 
 **Auth** — JWT via `Authorization: Bearer <token>`. The `auth` middleware in `middleware/auth.js` is applied per-router, not globally.
 
+## Project Docs
+
+Before implementing features or fixing bugs, check the `/docs` folder at the repo root:
+
+- **`docs/PRODUCT_DECISIONS.md`** — architectural and UX decisions with rationale
+- **`docs/FEATURES.md`** — planned features with backend implementation notes
+- **`docs/BUGS.md`** — known bugs and their fix options
+
 ## Environment Variables
 
 ```env

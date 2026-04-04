@@ -76,3 +76,13 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 ## No Test Suite
 
 There are no automated tests in either service. Manual testing is done by running both dev servers.
+
+## Project Docs
+
+All product decisions, planned features, and known bugs are tracked in `/docs`. Read these before implementing anything non-trivial.
+
+| File | Purpose |
+|------|---------|
+| [`docs/PRODUCT_DECISIONS.md`](docs/PRODUCT_DECISIONS.md) | Why things are built the way they are — read before implementing related features |
+| [`docs/FEATURES.md`](docs/FEATURES.md) | Planned and shipped features with implementation notes |
+| [`docs/BUGS.md`](docs/BUGS.md) | Known bugs, root causes, and fix options |
