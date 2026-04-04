@@ -122,7 +122,7 @@ async function sendReminder({ to, signerName, ownerName, title, signingUrl }) {
   return sendEmail({ to, subject: `Reminder: Please sign "${title}"`, html });
 }
 
-async function sendCompletionEmail({ request, completedFilePath }) {
+async function sendCompletionEmail({ request, completedFilePath, ownerEmail, ownerName }) {
   const axios = require('axios');
   let attachments = [];
   if (completedFilePath) {
@@ -137,44 +137,88 @@ async function sendCompletionEmail({ request, completedFilePath }) {
     }
   }
 
-  const recipients = request.signers.map(s => ({ email: s.email, name: s.name }));
+  const signerNames = request.signers.map(s => s.name || s.email).join(', ');
 
-  for (const recipient of recipients) {
-    const html = `
+  // Signer notification
+  const signerHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #4F46E5; padding: 20px; text-align: center;">
+        <h1 style="color: white; margin: 0;">Signo</h1>
+      </div>
+      <div style="padding: 30px; background: #f9f9f9;">
+        <div style="text-align: center; font-size: 48px; margin-bottom: 20px;">&#10003;</div>
+        <h2>Document Fully Signed!</h2>
+        <p>All parties have signed <strong>${request.title}</strong>.</p>
+        <p>The completed document is attached to this email.</p>
+      </div>
+    </div>
+  `;
+
+  for (const signer of request.signers) {
+    console.log(`[email] Sending completion email to signer ${signer.email}`);
+    try {
+      if (useResend()) {
+        await sendViaResend({ to: signer.email, subject: `"${request.title}" has been fully signed`, html: signerHtml, attachments });
+      } else {
+        const t = await getEtherealTransporter();
+        const info = await t.sendMail({
+          from: '"Signo" <uzair@bookleeai.com>',
+          to: signer.email,
+          subject: `"${request.title}" has been fully signed`,
+          html: signerHtml,
+          attachments,
+        });
+        if (nodemailer.getTestMessageUrl(info)) {
+          console.log(`[email] Completion preview (${signer.email}):`, nodemailer.getTestMessageUrl(info));
+        }
+      }
+    } catch (err) {
+      console.error(`[email] sendCompletionEmail failed for ${signer.email}:`, err.message);
+    }
+  }
+
+  // Owner / admin notification
+  if (ownerEmail) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const dashboardUrl = `${frontendUrl}/dashboard`;
+    const ownerHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #4F46E5; padding: 20px; text-align: center;">
           <h1 style="color: white; margin: 0;">Signo</h1>
         </div>
         <div style="padding: 30px; background: #f9f9f9;">
-          <div style="text-align: center; font-size: 48px; margin-bottom: 20px;">&#10003;</div>
-          <h2>Document Fully Signed!</h2>
-          <p>All parties have signed <strong>${request.title}</strong>.</p>
-          <p>The completed document is attached to this email.</p>
+          <div style="text-align: center; font-size: 48px; margin-bottom: 20px;">&#9989;</div>
+          <h2>Hi ${ownerName || 'there'},</h2>
+          <p>Your document <strong>${request.title}</strong> has been signed by all parties.</p>
+          <p style="color: #555;">Signed by: ${signerNames}</p>
+          <p>The fully signed PDF is attached to this email.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${dashboardUrl}" style="background: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+              View in Dashboard
+            </a>
+          </div>
         </div>
       </div>
     `;
-
-    console.log(`[email] Sending completion email to ${recipient.email}`);
+    console.log(`[email] Sending completion notification to owner ${ownerEmail}`);
     try {
       if (useResend()) {
-        console.log('[email] Using Resend API — key prefix:', process.env.RESEND_API_KEY.slice(0, 8));
-        await sendViaResend({ to: recipient.email, subject: `"${request.title}" has been fully signed`, html, attachments });
+        await sendViaResend({ to: ownerEmail, subject: `✅ "${request.title}" has been fully signed`, html: ownerHtml, attachments });
       } else {
         const t = await getEtherealTransporter();
         const info = await t.sendMail({
           from: '"Signo" <uzair@bookleeai.com>',
-          to: recipient.email,
-          subject: `"${request.title}" has been fully signed`,
-          html,
+          to: ownerEmail,
+          subject: `✅ "${request.title}" has been fully signed`,
+          html: ownerHtml,
           attachments,
         });
         if (nodemailer.getTestMessageUrl(info)) {
-          console.log(`[email] Completion preview (${recipient.email}):`, nodemailer.getTestMessageUrl(info));
+          console.log(`[email] Owner completion preview (${ownerEmail}):`, nodemailer.getTestMessageUrl(info));
         }
       }
     } catch (err) {
-      console.error(`[email] sendCompletionEmail failed for ${recipient.email}:`, err.message);
-      console.error('[email] Full error:', err);
+      console.error(`[email] Owner completion email failed for ${ownerEmail}:`, err.message);
     }
   }
 }

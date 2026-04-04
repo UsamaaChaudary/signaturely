@@ -195,83 +195,78 @@ export default function RequestDetailPage({
           <div className="col-span-2 space-y-6">
             {/* Signers */}
             <Card>
-              <CardHeader>
-                <CardTitle>Signers</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle>Signers ({request.signers.length})</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {request.signers.map((signer) => {
-                  const Icon =
-                    signer.status === "completed"
-                      ? CheckCircle
-                      : signer.status === "declined"
-                      ? XCircle
-                      : signer.status === "viewed"
-                      ? Eye
-                      : Clock;
+                  const statusConfig = {
+                    completed: { icon: CheckCircle, color: "text-green-500", bg: "bg-green-50 border-green-200", badge: "bg-green-100 text-green-700" },
+                    declined:  { icon: XCircle,     color: "text-red-500",   bg: "bg-red-50 border-red-200",     badge: "bg-red-100 text-red-700" },
+                    viewed:    { icon: Eye,          color: "text-blue-500",  bg: "bg-blue-50 border-blue-200",   badge: "bg-blue-100 text-blue-700" },
+                    pending:   { icon: Clock,        color: "text-gray-400",  bg: "bg-white border-gray-200",     badge: "bg-gray-100 text-gray-600" },
+                  };
+                  const cfg = statusConfig[signer.status as keyof typeof statusConfig] ?? statusConfig.pending;
+                  const Icon = cfg.icon;
+
+                  const initials = signer.name
+                    ? signer.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+                    : signer.email[0].toUpperCase();
+
+                  const timestamp = signer.signedAt
+                    ? `Signed ${new Date(signer.signedAt).toLocaleDateString()} at ${new Date(signer.signedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                    : signer.viewedAt
+                    ? `Viewed ${new Date(signer.viewedAt).toLocaleDateString()} at ${new Date(signer.viewedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                    : null;
+
                   return (
                     <div
                       key={signer._id}
-                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                      className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${cfg.bg}`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon
-                          className={`h-5 w-5 ${
-                            signer.status === "completed"
-                              ? "text-green-500"
-                              : signer.status === "declined"
-                              ? "text-red-500"
-                              : signer.status === "viewed"
-                              ? "text-blue-400"
-                              : "text-gray-400"
-                          }`}
-                        />
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {signer.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {signer.email}
-                          </div>
-                        </div>
+                      {/* Avatar */}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                        signer.status === "completed" ? "bg-green-100 text-green-700"
+                        : signer.status === "declined" ? "bg-red-100 text-red-700"
+                        : signer.status === "viewed"   ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-600"
+                      }`}>
+                        {initials}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {signer.signingToken && signer.status !== "completed" && signer.status !== "declined" && (
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            title="Copy signing link"
-                            onClick={() => copySigningLink(signer.signingToken!)}
-                          >
-                            <Link2 className="h-4 w-4 text-indigo-400" />
-                          </Button>
+
+                      {/* Name + email */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{signer.name}</p>
+                        <p className="text-sm text-gray-500 truncate">{signer.email}</p>
+                        {timestamp && (
+                          <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                            <Icon className={`h-3 w-3 ${cfg.color}`} />
+                            {timestamp}
+                          </p>
                         )}
-                        <div className="text-right">
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              signerStatusColors[signer.status] ||
-                              "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {signer.status}
-                          </span>
-                          {signer.signedAt && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              Signed{" "}
-                              {new Date(signer.signedAt).toLocaleString()}
+                      </div>
+
+                      {/* Status badge + copy link */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${cfg.badge}`}>
+                          {signer.status}
+                        </span>
+                        {signer.signingToken && signer.status !== "completed" && signer.status !== "declined" && (
+                          <div className="relative group">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => copySigningLink(signer.signingToken!)}
+                              className="text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50"
+                            >
+                              <Link2 className="h-4 w-4" />
+                            </Button>
+                            <div className="pointer-events-none absolute bottom-full right-0 mb-1.5 hidden group-hover:flex items-center whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs text-white shadow-md z-50">
+                              Copy signing link
+                              <div className="absolute top-full right-2 border-4 border-transparent border-t-gray-900" />
                             </div>
-                          )}
-                          {signer.viewedAt && !signer.signedAt && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              Viewed{" "}
-                              {new Date(signer.viewedAt).toLocaleString()}
-                            </div>
-                          )}
-                          {signer.ipAddress && (
-                            <div className="text-xs text-gray-400">
-                              {signer.ipAddress}
-                            </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

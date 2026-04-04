@@ -1,6 +1,7 @@
 const express = require('express');
 const SigningRequest = require('../models/SigningRequest');
 const Document = require('../models/Document');
+const User = require('../models/User');
 const pdfService = require('../services/pdfService');
 const emailService = require('../services/emailService');
 const { updateContactStats } = require('../utils/contactStats');
@@ -99,10 +100,13 @@ router.post('/:token/submit', async (req, res) => {
         // Update contact completion stats
         await updateContactStats(request.contactIds, { totalCompleted: 1 });
 
-        // Send completion emails
+        // Send completion emails to signers + owner
+        const owner = await User.findById(request.ownerId).select('name email').lean();
         await emailService.sendCompletionEmail({
           request,
           completedFilePath: completedPath,
+          ownerEmail: owner?.email,
+          ownerName:  owner?.name,
         });
       } catch (pdfErr) {
         console.error('PDF merge error:', pdfErr);

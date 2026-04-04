@@ -18,6 +18,7 @@ import {
   Bell,
   Link2,
 } from "lucide-react";
+import PdfPreviewModal from "@/components/PdfPreviewModal";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
@@ -45,7 +46,7 @@ interface Request {
   status: string;
   createdAt: string;
   completedFilePath?: string;
-  documentId?: { originalName: string };
+  documentId?: { originalName: string; filePath?: string; pageCount?: number };
   signers?: Signer[];
 }
 
@@ -53,6 +54,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewReq, setPreviewReq] = useState<Request | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -235,13 +237,14 @@ export default function Dashboard() {
                         >
                           {req.status.replace("_", " ")}
                         </span>
-                        <Link
-                          href={`/requests/${req._id}`}
-                          className={buttonVariants({ variant: "ghost", size: "sm" })}
-                          title="View details"
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Preview document"
+                          onClick={() => setPreviewReq(req)}
                         >
                           <Eye className="h-4 w-4" />
-                        </Link>
+                        </Button>
                         {/* Copy link — tooltip via title + group hover label */}
                         <div className="relative group">
                           <Button
@@ -300,6 +303,22 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </main>
+
+      {/* PDF Preview Modal */}
+      {previewReq && (() => {
+        const filePath = previewReq.status === "completed" && previewReq.completedFilePath
+          ? previewReq.completedFilePath
+          : previewReq.documentId?.filePath;
+        if (!filePath) return null;
+        return (
+          <PdfPreviewModal
+            fileName={previewReq.title}
+            filePath={filePath}
+            pageCount={previewReq.documentId?.pageCount ?? 1}
+            onClose={() => setPreviewReq(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

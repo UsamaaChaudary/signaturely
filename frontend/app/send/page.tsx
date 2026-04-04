@@ -153,39 +153,49 @@ function SendPageInner() {
 
     setSending(true);
     try {
-      // Each signer gets their own request
-      for (let i = 0; i < signers.length; i++) {
-        const signer = signers[i];
+      // Step 1: For manually-entered signers (no contactId), upsert the contact FIRST
+      // so we can pass the real contactId into createRequest → updateContactStats fires correctly.
+      const resolvedSigners = await Promise.all(
+        signers.map(async (signer) => {
+          if (signer.contactId || !signer.email.includes("@")) return signer;
+          try {
+            const data = await api.getContacts({ search: signer.email, limit: "5" });
+            const existing = (data.contacts || []).find(
+              (c: { _id: string; name: string; email: string }) =>
+                c.email.toLowerCase() === signer.email.toLowerCase()
+            );
+            if (existing) {
+              // Update name if it changed
+              if (signer.name && signer.name !== signer.email && existing.name !== signer.name) {
+                await api.updateContact(existing._id, { name: signer.name });
+              }
+              return { ...signer, contactId: existing._id };
+            } else {
+              const created = await api.createContact({
+                name:  signer.name || signer.email,
+                email: signer.email,
+              });
+              return { ...signer, contactId: created._id };
+            }
+          } catch {
+            return signer; // non-critical — proceed without contactId
+          }
+        })
+      );
+
+      // Step 2: Create each signing request with the resolved contactId
+      for (const signer of resolvedSigners) {
         const signerFields = fields.filter((f) => f.signerId === signer.id);
         await api.createRequest({
-          documentId:   document._id,
+          documentId:    document._id,
           title,
           message,
-          signers:      [{ name: signer.name, email: signer.email }],
-          fields:       signerFields.map((f) => ({ signerId: "1", type: f.type, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required })),
+          signers:       [{ name: signer.name, email: signer.email }],
+          fields:        signerFields.map((f) => ({ signerId: "1", type: f.type, page: f.page, x: f.x, y: f.y, width: f.width, height: f.height, required: f.required })),
           signerMapping: [{ tempId: "1", index: 0 }],
-          contactIds:   [signer.contactId || null],
-          templateId:   template?._id || null,
+          contactIds:    [signer.contactId || null],
+          templateId:    template?._id || null,
         });
-      }
-
-      // Upsert contacts for manually-entered signers (no contactId)
-      for (const signer of signers) {
-        if (signer.contactId) continue;
-        if (!signer.email || !signer.email.includes("@")) continue;
-        try {
-          const data = await api.getContacts({ search: signer.email, limit: "5" });
-          const existing = (data.contacts || []).find(
-            (c: { email: string }) => c.email.toLowerCase() === signer.email.toLowerCase()
-          );
-          if (existing) {
-            if (existing.name !== signer.name && signer.name && signer.name !== signer.email) {
-              await api.updateContact(existing._id, { name: signer.name });
-            }
-          } else {
-            await api.createContact({ name: signer.name || signer.email, email: signer.email });
-          }
-        } catch { /* non-critical — contact sync failure should not block the user */ }
       }
 
       toast.success(`${signers.length} request${signers.length > 1 ? "s" : ""} sent`);

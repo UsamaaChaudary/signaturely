@@ -51,8 +51,16 @@ export default function ContactSearchInput({ signers, onChange, allowManual = tr
 
   const addFromContact = (contact: Contact) => {
     if (signers.some((s) => s.email === contact.email)) return;
-    const newId = (signers.length + 1).toString();
-    onChange([...signers, { id: newId, name: contact.name, email: contact.email, contactId: contact._id }]);
+    // Replace the first empty slot if one exists, otherwise append
+    const emptyIdx = signers.findIndex((s) => !s.name && !s.email);
+    if (emptyIdx !== -1) {
+      const updated = [...signers];
+      updated[emptyIdx] = { ...updated[emptyIdx], name: contact.name, email: contact.email, contactId: contact._id };
+      onChange(updated);
+    } else {
+      const newId = (signers.length + 1).toString();
+      onChange([...signers, { id: newId, name: contact.name, email: contact.email, contactId: contact._id }]);
+    }
     setQuery("");
     setShowDropdown(false);
   };
@@ -94,7 +102,7 @@ export default function ContactSearchInput({ signers, onChange, allowManual = tr
               <button
                 key={c._id}
                 onClick={() => addFromContact(c)}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-3"
+                className="cursor-pointer w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold flex-shrink-0">
                   {c.name[0].toUpperCase()}
@@ -139,7 +147,7 @@ export default function ContactSearchInput({ signers, onChange, allowManual = tr
               </div>
             )}
             {signers.length > 1 && (
-              <button onClick={() => remove(signer.id)} className="text-gray-400 hover:text-red-500">
+              <button onClick={() => remove(signer.id)} className="cursor-pointer text-gray-400 hover:text-red-500">
                 <X className="h-4 w-4" />
               </button>
             )}
@@ -153,7 +161,7 @@ export default function ContactSearchInput({ signers, onChange, allowManual = tr
             const newId = (signers.length + 1).toString();
             onChange([...signers, { id: newId, name: "", email: "", contactId: null }]);
           }}
-          className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800"
+          className="cursor-pointer flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800"
         >
           <UserPlus className="h-4 w-4" /> Add signer manually
         </button>

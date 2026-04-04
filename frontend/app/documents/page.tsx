@@ -42,27 +42,27 @@ function ActionMenu({ onRename, onSend, onTemplate, onDelete }: {
     <div ref={ref} className="relative">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
-        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+        className="cursor-pointer p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
       {open && (
         <div className="absolute right-0 top-8 z-20 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1 text-sm">
           <button onClick={() => { setOpen(false); onRename(); }}
-            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700">
+            className="cursor-pointer w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700">
             <Pencil className="h-4 w-4 text-gray-400" /> Rename
           </button>
           <button onClick={() => { setOpen(false); onSend(); }}
-            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700">
+            className="cursor-pointer w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700">
             <Send className="h-4 w-4 text-indigo-500" /> Send for Signature
           </button>
           <button onClick={() => { setOpen(false); onTemplate(); }}
-            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700">
+            className="cursor-pointer w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700">
             <BookMarked className="h-4 w-4 text-purple-500" /> Save as Template
           </button>
           <div className="border-t border-gray-100 my-1" />
           <button onClick={() => { setOpen(false); onDelete(); }}
-            className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600">
+            className="cursor-pointer w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center gap-2.5 text-red-600">
             <Trash2 className="h-4 w-4" /> Delete
           </button>
         </div>
@@ -230,13 +230,13 @@ export default function DocumentsPage() {
                             <button
                               onClick={() => commitRename(doc._id)}
                               disabled={renameSaving}
-                              className="text-green-600 hover:text-green-700"
+                              className="cursor-pointer text-green-600 hover:text-green-700"
                             >
                               <Check className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => setRenamingId(null)}
-                              className="text-gray-400 hover:text-gray-600"
+                              className="cursor-pointer text-gray-400 hover:text-gray-600"
                             >
                               <X className="h-4 w-4" />
                             </button>

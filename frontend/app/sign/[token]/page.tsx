@@ -157,7 +157,7 @@ function SignatureCanvas({
       <div className="flex justify-end p-2 border-t border-gray-100">
         <button
           onClick={clear}
-          className="text-xs text-gray-400 hover:text-gray-600"
+          className="cursor-pointer text-xs text-gray-400 hover:text-gray-600"
         >
           Clear
         </button>
