@@ -7,8 +7,10 @@ const router = express.Router();
 // POST /api/contacts — create
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, email, company, phone, notes, tags } = req.body;
-    if (!name || !email) return res.status(400).json({ error: 'name and email are required' });
+    const { email, company, phone, notes, tags } = req.body;
+    let { name } = req.body;
+    if (!email) return res.status(400).json({ error: 'email is required' });
+    if (!name) name = email.split('@')[0];
 
     const contact = await Contact.create({
       ownerId: req.user._id,
@@ -123,7 +125,14 @@ router.post('/import', auth, async (req, res) => {
       try {
         const result = await Contact.findOneAndUpdate(
           { ownerId: req.user._id, email: row.email.toLowerCase().trim() },
-          { $setOnInsert: { name: row.name, company: row.company || '', ownerId: req.user._id } },
+          { $setOnInsert: {
+              name: row.name,
+              company: row.company || '',
+              phone: row.phone || '',
+              notes: row.notes || '',
+              customFields: row.customFields || {},
+              ownerId: req.user._id,
+          }},
           { upsert: true, new: false, rawResult: true }
         );
         if (result.lastErrorObject && result.lastErrorObject.upserted) {
